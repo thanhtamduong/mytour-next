@@ -62,7 +62,7 @@ export const ADVISOR_PROFILE: AdvisorProfile = {
     },
     {
       id: "pillar-3",
-      title: "Hỗ Trợ Visa Mỹ – Úc – Canada 1:1",
+      title: "Hỗ Trợ Visa Mỹ – Úc – Canada",
       description:
         "Kinh nghiệm xử lý hồ sơ du lịch, thăm thân chuyên sâu; hướng dẫn phỏng vấn tự tin và chọn tuyến đường đẹp nhất.",
       accent: "green",
@@ -103,7 +103,7 @@ export const PROFILE_STATS: StatItem[] = [
     id: "stat-visa",
     value: "98%",
     label: "Hài lòng & Tỷ lệ đậu Visa",
-    detail: "Hỗ trợ hồ sơ 1:1 tận tâm",
+    detail: "Hỗ trợ hồ sơ tận tâm",
     accent: "green",
   },
 ];

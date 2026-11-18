@@ -61,7 +61,7 @@ export const PERSONAL_GALLERY: PersonalPhotoItem[] = [
     id: "photo-5",
     title: "Khảo sát tuyến Bắc Mỹ & Dãy núi Rockies",
     caption:
-      "Nắm rõ thời tiết, trang phục và quy trình nhập cảnh Mỹ – Canada – Úc để tư vấn hồ sơ Visa 1:1 và lịch bay nhẹ nhàng nhất.",
+      "Nắm rõ thời tiết, trang phục và quy trình nhập cảnh Mỹ – Canada – Úc để tư vấn hồ sơ Visa và lịch bay nhẹ nhàng nhất.",
     location: "Banff National Park, Canada",
     dateLabel: "Tuyến Quốc tế",
     category: "inspection",

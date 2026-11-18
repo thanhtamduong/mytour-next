@@ -9,7 +9,7 @@ export const SITE_CONFIG = {
     "Thuỳ Linh Travel | Chuyên Viên Tư Vấn Tour Du Lịch Trong Nước & Quốc Tế",
   titleTemplate: "%s | Thuỳ Linh Travel — VIETOURIST",
   description:
-    "Trang cá nhân Nguyễn Thị Thuỳ Linh (VIETOURIST) — Chuyên viên tư vấn & điều hành tour du lịch Trong nước (Đà Lạt, Nha Trang, Đà Nẵng, Huế) & Quốc tế (Singapore, Malaysia, Indonesia, Hàn Quốc, Nhật Bản, Mỹ, Úc, Canada), hỗ trợ Visa 1:1 tận tâm.",
+    "Trang cá nhân Nguyễn Thị Thuỳ Linh (VIETOURIST) — Chuyên viên tư vấn & điều hành tour du lịch Trong nước (Đà Lạt, Nha Trang, Đà Nẵng, Huế) & Quốc tế (Singapore, Malaysia, Indonesia, Hàn Quốc, Nhật Bản, Mỹ, Úc, Canada), hỗ trợ Visa tận tâm.",
   locale: "vi_VN",
   lastModifiedIso: "2026-11-18T00:00:00.000Z",
   keywords: [

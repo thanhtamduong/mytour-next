@@ -53,7 +53,7 @@ export async function generateMetadata({
     };
   }
 
-  const description = `${tour.title} (${tour.duration}, khởi hành ${tour.departureFrom}). ${tour.highlights[0]}. Tư vấn lịch trình & Visa 1:1 cùng ${ADVISOR_PROFILE.fullName} — ${ADVISOR_PROFILE.brandName}.`;
+  const description = `${tour.title} (${tour.duration}, khởi hành ${tour.departureFrom}). ${tour.highlights[0]}. Tư vấn lịch trình & Visa cùng ${ADVISOR_PROFILE.fullName} — ${ADVISOR_PROFILE.brandName}.`;
   const imageUrl =
     typeof tour.imageUrl === "string" ? tour.imageUrl : tour.imageUrl.src;
 
@@ -263,9 +263,7 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
               <Card tone="white" padding="lg" className="border-[#FBCFE2]">
                 <div className="flex items-center justify-between gap-2 text-xs font-bold">
                   <span
-                    className={
-                      isDomestic ? "text-[#186C42]" : "text-[#C82564]"
-                    }
+                    className={isDomestic ? "text-[#186C42]" : "text-[#C82564]"}
                   >
                     {tour.countryOrProvince}
                   </span>
@@ -319,7 +317,6 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
                     </p>
                     <p className="truncate text-xs font-medium text-[#C82564]">
                       {ADVISOR_PROFILE.brandName} • Tư vấn lịch trình &amp; Visa
-                      1:1
                     </p>
                   </div>
                   <LotusMotif className="h-7 w-7 shrink-0" />
@@ -406,9 +403,7 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
                         <div>
                           <p
                             className={`text-xs font-semibold ${
-                              itemDomestic
-                                ? "text-[#186C42]"
-                                : "text-[#C82564]"
+                              itemDomestic ? "text-[#186C42]" : "text-[#C82564]"
                             }`}
                           >
                             {item.countryOrProvince}

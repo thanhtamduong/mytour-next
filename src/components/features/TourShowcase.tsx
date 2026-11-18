@@ -157,7 +157,7 @@ export function TourShowcase() {
 
       if (!query) return true;
       const searchable = normalizeText(
-        `${tour.title} ${tour.destination} ${tour.countryOrProvince} ${tour.regionLabel} ${tour.highlights.join(" ")}`
+        `${tour.title} ${tour.destination} ${tour.countryOrProvince} ${tour.regionLabel} ${tour.highlights.join(" ")}`,
       );
       return searchable.includes(query);
     });
@@ -177,7 +177,10 @@ export function TourShowcase() {
     return matched;
   }, [activeFilter, externalSearch]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredTours.length / cardsPerView));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredTours.length / cardsPerView),
+  );
   const activePage =
     slideState.key === filterKey
       ? Math.min(slideState.page, totalPages - 1)
@@ -234,7 +237,7 @@ export function TourShowcase() {
       });
       nextPage = Math.min(
         totalPages - 1,
-        Math.floor(closestIdx / cardsPerView + 0.35)
+        Math.floor(closestIdx / cardsPerView + 0.35),
       );
     }
 
@@ -314,7 +317,7 @@ export function TourShowcase() {
       const bias = Math.abs(moved) > 45 ? Math.sign(moved) * 80 : 0;
       const targetSearchLeft = Math.max(
         0,
-        Math.min(track.scrollLeft + bias, maxScroll)
+        Math.min(track.scrollLeft + bias, maxScroll),
       );
 
       const children = Array.from(track.children) as HTMLElement[];
@@ -345,10 +348,10 @@ export function TourShowcase() {
   };
 
   const domesticToursCount = TOUR_PACKAGES.filter(
-    (t) => t.scope === "domestic"
+    (t) => t.scope === "domestic",
   ).length;
   const internationalToursCount = TOUR_PACKAGES.filter(
-    (t) => t.scope === "international"
+    (t) => t.scope === "international",
   ).length;
 
   return (
@@ -425,7 +428,7 @@ export function TourShowcase() {
                 </div>
                 <p className="mt-1 text-xs sm:text-sm text-[#103F2B]/75 leading-relaxed">
                   Singapore • Malaysia • Indonesia • Hàn • Nhật • Mỹ • Úc •
-                  Canada — Hỗ trợ Visa 1:1.
+                  Canada — Hỗ trợ Visa.
                 </p>
               </div>
             </div>
@@ -610,7 +613,7 @@ export function TourShowcase() {
                   onBookTour(
                     externalSearch
                       ? `Tour thiết kế riêng đi ${externalSearch}`
-                      : "Tour thiết kế theo yêu cầu"
+                      : "Tour thiết kế theo yêu cầu",
                   )
                 }
               >
@@ -717,9 +720,7 @@ export function TourShowcase() {
                           <div className="flex items-center justify-between gap-2 text-xs font-semibold">
                             <span
                               className={`truncate ${
-                                isDomestic
-                                  ? "text-[#186C42]"
-                                  : "text-[#C82564]"
+                                isDomestic ? "text-[#186C42]" : "text-[#C82564]"
                               }`}
                             >
                               {tour.countryOrProvince}

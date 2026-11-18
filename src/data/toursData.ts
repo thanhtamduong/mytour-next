@@ -320,7 +320,7 @@ export const TOUR_PACKAGES: TourPackage[] = [
     priceLabel: "62.900.000đ",
     rating: 4.9,
     reviewCount: 96,
-    badgeText: "Tư Vấn Visa Mỹ 1:1",
+    badgeText: "Tư Vấn Visa Mỹ",
     visaRequired: true,
     visaNote:
       "Luyện phỏng vấn Visa Mỹ B1/B2 & điền DS-160 trực tiếp cùng Thuỳ Linh",
