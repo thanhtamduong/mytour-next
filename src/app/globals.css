@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-be-vietnam), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: var(--font-playfair), Georgia, Cambria, "Times New Roman", Times, serif;
+
+  --color-lotus-50: #FFF5F8;
+  --color-lotus-100: #FCE7F0;
+  --color-lotus-200: #FBCFE2;
+  --color-lotus-300: #F8A4C7;
+  --color-lotus-400: #F26B9F;
+  --color-lotus-500: #E13D7D;
+  --color-lotus-600: #C82564;
+  --color-lotus-700: #A51950;
+  --color-lotus-800: #871743;
+
+  --color-leaf-50: #EEF9F2;
+  --color-leaf-100: #D7F0E0;
+  --color-leaf-200: #B2DFC4;
+  --color-leaf-300: #7EC79E;
+  --color-leaf-400: #49A875;
+  --color-leaf-500: #268955;
+  --color-leaf-600: #186C42;
+  --color-leaf-700: #145335;
+  --color-leaf-800: #103F2B;
+  --color-leaf-900: #0B2D1E;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    scroll-padding-top: 4.75rem;
+    -webkit-tap-highlight-color: rgba(225, 61, 125, 0.14);
+  }
+
+  @media (min-width: 1024px) {
+    html {
+      scroll-padding-top: 5.25rem;
+    }
+  }
+
+  body {
+    background-color: #FFFDFC;
+    color: #103F2B;
+    overflow-x: clip;
+  }
+}
+
+/* Subtle decorative gradient mesh inspired by Vietnamese lotus ponds */
+.lotus-pond-bg {
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(252, 231, 240, 0.9) 0%, rgba(252, 231, 240, 0) 42%),
+    radial-gradient(circle at 88% 12%, rgba(215, 240, 224, 0.75) 0%, rgba(215, 240, 224, 0) 40%),
+    radial-gradient(circle at 75% 85%, rgba(251, 207, 226, 0.45) 0%, rgba(251, 207, 226, 0) 45%);
+}
+
+/* Custom thin scrollbar for horizontal filter pills on mobile */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
