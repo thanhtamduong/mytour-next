@@ -65,6 +65,8 @@ const FILTER_TABS: { id: TourFilterTab; label: string; count: number }[] = [
   },
 ];
 
+const MAX_SEARCH_LENGTH = 100;
+
 const QUICK_DESTINATIONS = [
   "Đà Lạt",
   "Nha Trang",
@@ -473,8 +475,11 @@ export function TourShowcase() {
               <LuSearch className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#186C42]" />
               <input
                 type="text"
+                maxLength={MAX_SEARCH_LENGTH}
                 value={externalSearch}
-                onChange={(event) => onChangeSearch(event.target.value)}
+                onChange={(event) =>
+                  onChangeSearch(event.target.value.slice(0, MAX_SEARCH_LENGTH))
+                }
                 placeholder="Tìm điểm đến: Đà Lạt, Mỹ, Úc, Sing..."
                 aria-label="Tìm kiếm tour theo điểm đến"
                 className="w-full rounded-2xl border border-[#B2DFC4] bg-[#EEF9F2]/40 py-2.5 pl-10 pr-9 text-base sm:text-sm text-[#103F2B] placeholder:text-[#103F2B]/50 focus:border-[#E13D7D] focus:bg-white focus:outline-none"

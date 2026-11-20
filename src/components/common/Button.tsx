@@ -4,6 +4,7 @@ import type {
   ButtonHTMLAttributes,
   ReactNode,
 } from "react";
+import { sanitizeHref } from "@/lib/sanitize";
 
 type ButtonVariant =
   | "primary"
@@ -113,18 +114,31 @@ export function Button(props: ButtonProps) {
       fullWidth,
       className,
     });
-    const isInternalRoute = href.startsWith("/") && !href.startsWith("//");
+    const safeHref = sanitizeHref(href, { allowTel: true, allowMailto: true });
+    const isInternalRoute =
+      safeHref.startsWith("/") && !safeHref.startsWith("//");
 
     if (isInternalRoute) {
       return (
-        <Link href={href} className={classes} {...anchorProps}>
+        <Link href={safeHref} className={classes} {...anchorProps}>
           {renderButtonContent(children, leftIcon, rightIcon)}
         </Link>
       );
     }
 
+    const safeRel =
+      anchorProps.target === "_blank"
+        ? Array.from(
+            new Set([
+              ...(anchorProps.rel?.split(/\s+/).filter(Boolean) ?? []),
+              "noopener",
+              "noreferrer",
+            ])
+          ).join(" ")
+        : anchorProps.rel;
+
     return (
-      <a href={href} className={classes} {...anchorProps}>
+      <a href={safeHref} className={classes} {...anchorProps} rel={safeRel}>
         {renderButtonContent(children, leftIcon, rightIcon)}
       </a>
     );

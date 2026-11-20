@@ -28,6 +28,7 @@ import {
   getTourBySlug,
 } from "@/data/toursData";
 import { SITE_CONFIG } from "@/lib/siteConfig";
+import { buildTelHref } from "@/lib/sanitize";
 import { buildTourJsonLd, serializeJsonLd } from "@/lib/structuredData";
 
 interface TourDetailPageProps {
@@ -327,7 +328,7 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
                   <Button
                     variant="soft-green"
                     size="lg"
-                    href={`tel:${ADVISOR_PROFILE.phone.replace(/\s+/g, "")}`}
+                    href={buildTelHref(ADVISOR_PROFILE.phone)}
                     leftIcon={<LuPhoneCall className="h-4 w-4" />}
                     fullWidth
                   >

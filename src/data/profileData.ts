@@ -1,4 +1,5 @@
 import myAvatarImg from "@/assets/img-my.jpg";
+import { sanitizeExternalUrl } from "@/lib/sanitize";
 import type { AdvisorProfile, StatItem } from "@/types/travel";
 
 /**
@@ -23,12 +24,17 @@ export const ADVISOR_PROFILE: AdvisorProfile = {
     "https://images.unsplash.com/photo-1603852452378-a4e8d84324a2?auto=format&fit=crop&w=1000&q=80",
   lotusAccentImageUrl:
     "https://images.unsplash.com/photo-1530027644375-9c83053d392e?auto=format&fit=crop&w=900&q=80",
-  phone: "070 3003 986",
-  zaloLink: "https://zalo.me/0703003986",
-  email: "",
-  facebookUrl: "https://www.facebook.com/thuy.linh.960691",
-  instagramUrl: "",
+  phone: process.env.NEXT_PUBLIC_CONTACT_PHONE?.trim() || "070 3003 986",
+  zaloLink:
+    sanitizeExternalUrl(process.env.NEXT_PUBLIC_ZALO_LINK) ||
+    "https://zalo.me/0703003986",
+  email: process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() || "",
+  facebookUrl:
+    sanitizeExternalUrl(process.env.NEXT_PUBLIC_FACEBOOK_URL) ||
+    "https://www.facebook.com/thuy.linh.960691",
+  instagramUrl: sanitizeExternalUrl(process.env.NEXT_PUBLIC_INSTAGRAM_URL) || "",
   officeAddress:
+    process.env.NEXT_PUBLIC_OFFICE_ADDRESS?.trim() ||
     "242 Trần Hưng Đạo, Cầu Ông Lãnh, Hồ Chí Minh (Hỗ trợ tư vấn Online toàn quốc)",
   workingHours: "08:00 – 22:00 (Tất cả các ngày trong tuần)",
   featuredDestinations: [

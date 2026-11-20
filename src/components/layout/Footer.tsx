@@ -14,6 +14,11 @@ import {
 import { LotusMotif } from "@/components/common/LotusMotif";
 import { useTravelProfile } from "@/components/providers/TravelProfileContext";
 import { ADVISOR_PROFILE } from "@/data/profileData";
+import {
+  buildTelHref,
+  sanitizeExternalUrl,
+  sanitizeMailtoHref,
+} from "@/lib/sanitize";
 
 const DOMESTIC_TAGS = ["Đà Lạt", "Nha Trang", "Đà Nẵng", "Huế"];
 const INTERNATIONAL_TAGS = [
@@ -40,9 +45,11 @@ function useCurrentYear(): number {
 export function Footer() {
   const { selectDestination } = useTravelProfile();
   const currentYear = useCurrentYear();
-  const hasEmail = ADVISOR_PROFILE.email.trim().length > 0;
-  const hasFacebook = ADVISOR_PROFILE.facebookUrl.trim().length > 0;
-  const hasInstagram = ADVISOR_PROFILE.instagramUrl.trim().length > 0;
+  const mailtoHref = sanitizeMailtoHref(ADVISOR_PROFILE.email);
+  const facebookHref = sanitizeExternalUrl(ADVISOR_PROFILE.facebookUrl);
+  const instagramHref = sanitizeExternalUrl(ADVISOR_PROFILE.instagramUrl);
+  const zaloHref = sanitizeExternalUrl(ADVISOR_PROFILE.zaloLink);
+  const telHref = buildTelHref(ADVISOR_PROFILE.phone);
 
   return (
     <footer className="relative overflow-hidden bg-[#0B2D1E] text-white">
@@ -79,9 +86,9 @@ export function Footer() {
             </p>
 
             <div className="mt-5 flex flex-wrap items-center gap-3">
-              {hasFacebook && (
+              {facebookHref && (
                 <a
-                  href={ADVISOR_PROFILE.facebookUrl}
+                  href={facebookHref}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white transition hover:bg-[#E13D7D]"
@@ -90,9 +97,9 @@ export function Footer() {
                   <LuFacebook className="h-5 w-5" />
                 </a>
               )}
-              {hasInstagram && (
+              {instagramHref && (
                 <a
-                  href={ADVISOR_PROFILE.instagramUrl}
+                  href={instagramHref}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white transition hover:bg-[#E13D7D]"
@@ -101,14 +108,16 @@ export function Footer() {
                   <LuInstagram className="h-5 w-5" />
                 </a>
               )}
-              <a
-                href={ADVISOR_PROFILE.zaloLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-10 items-center justify-center rounded-xl bg-[#E13D7D] px-3.5 text-xs font-bold text-white transition hover:bg-[#F26B9F]"
-              >
-                Zalo 24/7
-              </a>
+              {zaloHref && (
+                <a
+                  href={zaloHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-10 items-center justify-center rounded-xl bg-[#E13D7D] px-3.5 text-xs font-bold text-white transition hover:bg-[#F26B9F]"
+                >
+                  Zalo 24/7
+                </a>
+              )}
             </div>
           </div>
 
@@ -163,17 +172,17 @@ export function Footer() {
               <li className="flex items-start gap-2.5">
                 <LuPhoneCall className="mt-0.5 h-4 w-4 shrink-0 text-[#F472A8]" />
                 <a
-                  href={`tel:${ADVISOR_PROFILE.phone.replace(/\s+/g, "")}`}
+                  href={telHref}
                   className="font-semibold text-white hover:text-[#F8A4C7]"
                 >
                   {ADVISOR_PROFILE.phone}
                 </a>
               </li>
-              {hasEmail && (
+              {mailtoHref && (
                 <li className="flex items-start gap-2.5">
                   <LuMail className="mt-0.5 h-4 w-4 shrink-0 text-[#F472A8]" />
                   <a
-                    href={`mailto:${ADVISOR_PROFILE.email}`}
+                    href={mailtoHref}
                     className="break-all hover:text-[#F8A4C7]"
                   >
                     {ADVISOR_PROFILE.email}
@@ -198,8 +207,8 @@ export function Footer() {
             {ADVISOR_PROFILE.brandName}. Sắc hồng &amp; xanh lá hoa sen Việt Nam.
           </p>
           <p>
-            Hình ảnh minh họa tạm thời từ nguồn Unsplash • Sẵn sàng thay bằng
-            ảnh cá nhân thật.
+            Tư vấn lịch trình &amp; hỗ trợ Visa tận tâm • Liên hệ trực tiếp qua
+            Hotline/Zalo chính chủ.
           </p>
         </div>
       </div>

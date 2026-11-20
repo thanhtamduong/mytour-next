@@ -3,6 +3,7 @@
 import { LuMessageCircleHeart, LuPhoneCall } from "@/components/common/Icons";
 import { useTravelProfile } from "@/components/providers/TravelProfileContext";
 import { ADVISOR_PROFILE } from "@/data/profileData";
+import { buildTelHref } from "@/lib/sanitize";
 
 export function FloatingContact() {
   const { openConsult } = useTravelProfile();
@@ -10,7 +11,7 @@ export function FloatingContact() {
   return (
     <div className="fixed bottom-3.5 right-3.5 z-30 flex flex-col items-end gap-2 sm:bottom-6 sm:right-6 sm:gap-2.5">
       <a
-        href={`tel:${ADVISOR_PROFILE.phone.replace(/\s+/g, "")}`}
+        href={buildTelHref(ADVISOR_PROFILE.phone)}
         className="flex h-11 min-w-[44px] items-center justify-center gap-2 rounded-full border border-[#B2DFC4] bg-white/95 px-3 sm:px-4 text-xs font-bold text-[#145335] shadow-lg backdrop-blur-md transition hover:scale-105 hover:bg-[#EEF9F2]"
         aria-label="Gọi điện tư vấn tour"
       >

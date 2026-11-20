@@ -1,7 +1,11 @@
-const rawSiteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://thuylinhtravel.vn";
+import { normalizeSiteUrl } from "@/lib/sanitize";
 
-export const SITE_URL = rawSiteUrl.replace(/\/+$/, "");
+const DEFAULT_SITE_URL = "https://thuylinhtravel.vn";
+
+export const SITE_URL = normalizeSiteUrl(
+  process.env.NEXT_PUBLIC_SITE_URL,
+  DEFAULT_SITE_URL
+);
 
 export const SITE_CONFIG = {
   siteName: "Thuỳ Linh Travel — VIETOURIST",

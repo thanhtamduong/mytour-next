@@ -14,10 +14,17 @@ import { LotusMotif } from "@/components/common/LotusMotif";
 import { SectionTitle } from "@/components/common/SectionTitle";
 import { useTravelProfile } from "@/components/providers/TravelProfileContext";
 import { ADVISOR_PROFILE } from "@/data/profileData";
+import {
+  buildTelHref,
+  sanitizeExternalUrl,
+  sanitizeMailtoHref,
+} from "@/lib/sanitize";
 
 export function ContactSection() {
   const { selectedTourTopic } = useTravelProfile();
-  const hasEmail = ADVISOR_PROFILE.email.trim().length > 0;
+  const mailtoHref = sanitizeMailtoHref(ADVISOR_PROFILE.email);
+  const telHref = buildTelHref(ADVISOR_PROFILE.phone);
+  const zaloHref = sanitizeExternalUrl(ADVISOR_PROFILE.zaloLink);
 
   return (
     <section
@@ -57,7 +64,7 @@ export function ContactSection() {
 
               <div className="mt-5 sm:mt-6 space-y-3.5 sm:space-y-4">
                 <a
-                  href={`tel:${ADVISOR_PROFILE.phone.replace(/\s+/g, "")}`}
+                  href={telHref}
                   className="flex items-center gap-3.5 rounded-2xl border border-[#B2DFC4] bg-white p-3.5 sm:p-4 transition hover:border-[#E13D7D]"
                 >
                   <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#FCE7F0] text-[#C82564]">
@@ -73,9 +80,9 @@ export function ContactSection() {
                   </div>
                 </a>
 
-                {hasEmail && (
+                {mailtoHref && (
                   <a
-                    href={`mailto:${ADVISOR_PROFILE.email}`}
+                    href={mailtoHref}
                     className="flex items-center gap-3.5 rounded-2xl border border-[#B2DFC4] bg-white p-3.5 sm:p-4 transition hover:border-[#E13D7D]"
                   >
                     <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#EEF9F2] text-[#186C42]">
@@ -130,17 +137,19 @@ export function ContactSection() {
                   <span className="font-bold">{selectedTourTopic}</span>
                 </div>
               )}
-              <Button
-                variant="secondary"
-                size="lg"
-                href={ADVISOR_PROFILE.zaloLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                leftIcon={<LuMessageCircleHeart className="h-5 w-5" />}
-                fullWidth
-              >
-                Nhắn Zalo nhận ưu đãi ngay
-              </Button>
+              {zaloHref && (
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  href={zaloHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  leftIcon={<LuMessageCircleHeart className="h-5 w-5" />}
+                  fullWidth
+                >
+                  Nhắn Zalo nhận ưu đãi ngay
+                </Button>
+              )}
             </div>
           </Card>
         </div>

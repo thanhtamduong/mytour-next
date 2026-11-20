@@ -1,8 +1,18 @@
 import { JOURNEY_STORIES } from "@/data/journeyData";
 import { ADVISOR_PROFILE } from "@/data/profileData";
 import { TOUR_PACKAGES } from "@/data/toursData";
+import { normalizePhoneE164, sanitizeExternalUrl } from "@/lib/sanitize";
 import { SITE_CONFIG, SITE_URL } from "@/lib/siteConfig";
 import type { ImageSource, TourPackage } from "@/types/travel";
+
+const JSON_LD_ESCAPE_REGEX = /[<>&\u2028\u2029]/g;
+const JSON_LD_ESCAPE_MAP: Record<string, string> = {
+  "<": "\\u003c",
+  ">": "\\u003e",
+  "&": "\\u0026",
+  "\u2028": "\\u2028",
+  "\u2029": "\\u2029",
+};
 
 function resolveImageUrl(image: ImageSource): string {
   if (typeof image === "string") return image;
@@ -10,11 +20,14 @@ function resolveImageUrl(image: ImageSource): string {
 }
 
 export function serializeJsonLd(data: unknown): string {
-  return JSON.stringify(data).replace(/</g, "\\u003c");
+  return JSON.stringify(data).replace(
+    JSON_LD_ESCAPE_REGEX,
+    (ch) => JSON_LD_ESCAPE_MAP[ch] ?? ch
+  );
 }
 
 export function buildHomeJsonLd() {
-  const normalizedPhone = `+84${ADVISOR_PROFILE.phone.replace(/\s+/g, "").replace(/^0/, "")}`;
+  const normalizedPhone = normalizePhoneE164(ADVISOR_PROFILE.phone);
   const totalReviews = TOUR_PACKAGES.reduce((sum, t) => sum + t.reviewCount, 0);
   const weightedRating =
     TOUR_PACKAGES.reduce((sum, t) => sum + t.rating * t.reviewCount, 0) /
@@ -24,7 +37,9 @@ export function buildHomeJsonLd() {
     ADVISOR_PROFILE.facebookUrl,
     ADVISOR_PROFILE.zaloLink,
     ADVISOR_PROFILE.instagramUrl,
-  ].filter((url) => url.trim().length > 0);
+  ]
+    .map((url) => sanitizeExternalUrl(url))
+    .filter((url) => url.length > 0);
 
   return {
     "@context": "https://schema.org",

@@ -12,6 +12,7 @@ import { Button } from "@/components/common/Button";
 import { LotusMotif } from "@/components/common/LotusMotif";
 import { useTravelProfile } from "@/components/providers/TravelProfileContext";
 import { ADVISOR_PROFILE } from "@/data/profileData";
+import { buildTelHref } from "@/lib/sanitize";
 
 const NAV_LINKS = [
   { label: "Giới thiệu", href: "/#gioi-thieu" },
@@ -88,7 +89,7 @@ export function Navbar() {
         {/* Actions */}
         <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
           <a
-            href={`tel:${ADVISOR_PROFILE.phone.replace(/\s+/g, "")}`}
+            href={buildTelHref(ADVISOR_PROFILE.phone)}
             className="hidden md:inline-flex items-center gap-1.5 rounded-2xl border border-[#B2DFC4] bg-[#EEF9F2] px-3.5 py-2 text-xs font-bold text-[#145335] transition hover:bg-[#D7F0E0]"
           >
             <LuPhoneCall className="h-3.5 w-3.5 text-[#186C42]" />
@@ -141,7 +142,7 @@ export function Navbar() {
             <Button
               variant="soft-green"
               size="sm"
-              href={`tel:${ADVISOR_PROFILE.phone.replace(/\s+/g, "")}`}
+              href={buildTelHref(ADVISOR_PROFILE.phone)}
               leftIcon={<LuPhoneCall className="h-4 w-4" />}
               fullWidth
             >

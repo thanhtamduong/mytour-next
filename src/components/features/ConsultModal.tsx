@@ -13,14 +13,22 @@ import { Modal } from "@/components/common/Modal";
 import { SmartImage } from "@/components/common/SmartImage";
 import { useTravelProfile } from "@/components/providers/TravelProfileContext";
 import { ADVISOR_PROFILE } from "@/data/profileData";
+import { buildTelHref, sanitizeExternalUrl } from "@/lib/sanitize";
+
+const MAX_TOUR_INPUT_LENGTH = 160;
 
 interface ConsultContentProps {
   initialTour: string;
 }
 
 function ConsultContent({ initialTour }: ConsultContentProps) {
-  const [tourInterest, setTourInterest] = useState(initialTour);
+  const [tourInterest, setTourInterest] = useState(
+    initialTour.slice(0, MAX_TOUR_INPUT_LENGTH)
+  );
   const [copied, setCopied] = useState(false);
+
+  const zaloHref = sanitizeExternalUrl(ADVISOR_PROFILE.zaloLink);
+  const telHref = buildTelHref(ADVISOR_PROFILE.phone);
 
   useEffect(() => {
     if (!copied) return;
@@ -29,7 +37,9 @@ function ConsultContent({ initialTour }: ConsultContentProps) {
   }, [copied]);
 
   const copyInquiryText = async () => {
-    const tourName = tourInterest.trim() || "Tư vấn chọn tour phù hợp";
+    const tourName =
+      tourInterest.trim().slice(0, MAX_TOUR_INPUT_LENGTH) ||
+      "Tư vấn chọn tour phù hợp";
     const text = `Chào ${ADVISOR_PROFILE.nickname}, mình muốn tư vấn & nhận báo giá: ${tourName}`;
     try {
       await navigator.clipboard?.writeText(text);
@@ -99,8 +109,11 @@ function ConsultContent({ initialTour }: ConsultContentProps) {
         <input
           id="modal-tour"
           type="text"
+          maxLength={MAX_TOUR_INPUT_LENGTH}
           value={tourInterest}
-          onChange={(e) => setTourInterest(e.target.value)}
+          onChange={(e) =>
+            setTourInterest(e.target.value.slice(0, MAX_TOUR_INPUT_LENGTH))
+          }
           className="w-full rounded-2xl border border-[#FBCFE2] bg-[#FFF5F8]/50 px-3.5 py-2.5 text-base sm:text-sm font-medium text-[#103F2B] focus:border-[#E13D7D] focus:bg-white focus:outline-none"
         />
         <p className="mt-1.5 text-[11px] text-[#103F2B]/65">
@@ -110,23 +123,25 @@ function ConsultContent({ initialTour }: ConsultContentProps) {
       </div>
 
       <div className="flex flex-col gap-2.5 pt-1">
-        <Button
-          variant="primary"
-          size="lg"
-          href={ADVISOR_PROFILE.zaloLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={copyInquiryText}
-          leftIcon={<LuMessageCircleHeart className="h-5 w-5" />}
-          rightIcon={<LuExternalLink className="h-4 w-4" />}
-          fullWidth
-        >
-          Mở Zalo kết bạn &amp; chat báo giá
-        </Button>
+        {zaloHref && (
+          <Button
+            variant="primary"
+            size="lg"
+            href={zaloHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={copyInquiryText}
+            leftIcon={<LuMessageCircleHeart className="h-5 w-5" />}
+            rightIcon={<LuExternalLink className="h-4 w-4" />}
+            fullWidth
+          >
+            Mở Zalo kết bạn &amp; chat báo giá
+          </Button>
+        )}
         <Button
           variant="soft-green"
           size="md"
-          href={`tel:${ADVISOR_PROFILE.phone.replace(/\s+/g, "")}`}
+          href={telHref}
           leftIcon={<LuPhoneCall className="h-4 w-4" />}
           fullWidth
         >
