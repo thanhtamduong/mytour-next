@@ -4,10 +4,15 @@ import { JourneyFeed } from "@/components/features/JourneyFeed";
 import { PersonalGallery } from "@/components/features/PersonalGallery";
 import { StatsBar } from "@/components/features/StatsBar";
 import { TourShowcase } from "@/components/features/TourShowcase";
+import { getStoredGallery, getStoredTours } from "@/lib/contentStore";
 import { buildHomeJsonLd, serializeJsonLd } from "@/lib/structuredData";
 
-export default function HomePage() {
-  const homeJsonLd = buildHomeJsonLd();
+export default async function HomePage() {
+  const [tours, gallery] = await Promise.all([
+    getStoredTours(),
+    getStoredGallery(),
+  ]);
+  const homeJsonLd = buildHomeJsonLd(tours);
 
   return (
     <>
@@ -20,8 +25,8 @@ export default function HomePage() {
       <main className="flex-1">
         <Hero />
         <StatsBar />
-        <PersonalGallery />
-        <TourShowcase />
+        <PersonalGallery photos={gallery} />
+        <TourShowcase tours={tours} />
         <JourneyFeed />
         <ContactSection />
       </main>

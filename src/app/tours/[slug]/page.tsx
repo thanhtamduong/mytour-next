@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { Badge } from "@/components/common/Badge";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
@@ -23,10 +24,10 @@ import { SmartImage } from "@/components/common/SmartImage";
 import { TourConsultButton } from "@/components/features/TourConsultButton";
 import { ADVISOR_PROFILE } from "@/data/profileData";
 import {
-  TOUR_PACKAGES,
-  getRelatedTours,
-  getTourBySlug,
-} from "@/data/toursData";
+  getStoredRelatedTours,
+  getStoredTourBySlug,
+  getStoredTours,
+} from "@/lib/contentStore";
 import { SITE_CONFIG } from "@/lib/siteConfig";
 import { buildTelHref } from "@/lib/sanitize";
 import { buildTourJsonLd, serializeJsonLd } from "@/lib/structuredData";
@@ -35,8 +36,12 @@ interface TourDetailPageProps {
   params: Promise<{ slug: string }>;
 }
 
-export function generateStaticParams() {
-  return TOUR_PACKAGES.map((tour) => ({
+export async function generateStaticParams() {
+  const tours = await getStoredTours();
+  if (tours.length === 0) {
+    return [{ slug: "__placeholder__" }];
+  }
+  return tours.map((tour) => ({
     slug: tour.slug,
   }));
 }
@@ -45,7 +50,7 @@ export async function generateMetadata({
   params,
 }: TourDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const tour = getTourBySlug(slug);
+  const tour = await getStoredTourBySlug(slug);
 
   if (!tour) {
     return {
@@ -54,7 +59,7 @@ export async function generateMetadata({
     };
   }
 
-  const description = `${tour.title} (${tour.duration}, khởi hành ${tour.departureFrom}). ${tour.highlights[0]}. Tư vấn lịch trình & Visa cùng ${ADVISOR_PROFILE.fullName} — ${ADVISOR_PROFILE.brandName}.`;
+  const description = `${tour.title} (${tour.duration}, khởi hành ${tour.departureFrom}). ${tour.highlights[0] ?? ""}. Tư vấn lịch trình & Visa cùng ${ADVISOR_PROFILE.fullName} — ${ADVISOR_PROFILE.brandName}.`;
   const imageUrl =
     typeof tour.imageUrl === "string" ? tour.imageUrl : tour.imageUrl.src;
 
@@ -97,16 +102,42 @@ export async function generateMetadata({
   };
 }
 
-export default async function TourDetailPage({ params }: TourDetailPageProps) {
+function TourDetailFallback() {
+  return (
+    <main className="flex-1 lotus-pond-bg pb-16">
+      <div className="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
+        <div className="h-8 w-44 animate-pulse rounded-full bg-[#FCE7F0]" />
+        <div className="mt-6 grid gap-6 lg:grid-cols-12">
+          <div className="lg:col-span-7 aspect-[16/10] animate-pulse rounded-3xl bg-[#FCE7F0]/70" />
+          <div className="lg:col-span-5 h-96 animate-pulse rounded-3xl bg-white/80 border border-[#FBCFE2]" />
+        </div>
+      </div>
+    </main>
+  );
+}
+
+export default function TourDetailPage({ params }: TourDetailPageProps) {
+  return (
+    <Suspense fallback={<TourDetailFallback />}>
+      <TourDetailContent params={params} />
+    </Suspense>
+  );
+}
+
+async function TourDetailContent({ params }: TourDetailPageProps) {
   const { slug } = await params;
-  const tour = getTourBySlug(slug);
+  const [tour, allTours] = await Promise.all([
+    getStoredTourBySlug(slug),
+    getStoredTours(),
+  ]);
 
   if (!tour) {
     notFound();
   }
 
   const isDomestic = tour.scope === "domestic";
-  const relatedTours = getRelatedTours(tour, 3);
+  const relatedTours = await getStoredRelatedTours(tour, 3);
+  const totalToursCount = allTours.length;
   const tourJsonLd = buildTourJsonLd(tour);
 
   return (
@@ -363,7 +394,7 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
                   </h2>
                 </div>
                 <Button variant="outline" size="sm" href="/#tour-du-lich">
-                  Xem tất cả {TOUR_PACKAGES.length} tuyến tour
+                  Xem tất cả {totalToursCount} tuyến tour
                 </Button>
               </div>
 

@@ -30,7 +30,8 @@ export function SmartImage({
   sizes = "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw",
   quality = 75,
 }: SmartImageProps) {
-  const [hasError, setHasError] = useState(false);
+  const [failedSrc, setFailedSrc] = useState<ImageSource | null>(null);
+  const hasError = failedSrc === src;
 
   if (hasError) {
     return (
@@ -48,6 +49,7 @@ export function SmartImage({
   }
 
   const isStaticImport = typeof src !== "string";
+  const isLocalUpload = typeof src === "string" && src.startsWith("/uploads/");
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-[#FCE7F0]/40">
@@ -59,9 +61,10 @@ export function SmartImage({
         quality={quality}
         preload={preload}
         loading={preload ? undefined : loading}
+        unoptimized={isLocalUpload}
         placeholder={isStaticImport ? "blur" : "empty"}
         draggable={false}
-        onError={() => setHasError(true)}
+        onError={() => setFailedSrc(src)}
         className={`select-none ${className}`}
       />
     </div>

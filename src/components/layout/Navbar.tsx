@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/common/Button";
 import { LotusMotif } from "@/components/common/LotusMotif";
 import { useTravelProfile } from "@/components/providers/TravelProfileContext";
+import { JOURNEY_STORIES } from "@/data/journeyData";
 import { ADVISOR_PROFILE } from "@/data/profileData";
 import { buildTelHref } from "@/lib/sanitize";
 
@@ -18,7 +19,9 @@ const NAV_LINKS = [
   { label: "Giới thiệu", href: "/#gioi-thieu" },
   { label: "Ảnh cá nhân", href: "/#anh-ca-nhan" },
   { label: "Tour đang bán", href: "/#tour-du-lich" },
-  { label: "Hành trình khách", href: "/#hanh-trinh" },
+  ...(JOURNEY_STORIES.length > 0
+    ? [{ label: "Hành trình khách", href: "/#hanh-trinh" }]
+    : []),
   { label: "Liên hệ", href: "/#lien-he" },
 ];
 

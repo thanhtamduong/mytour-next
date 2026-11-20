@@ -206,10 +206,18 @@ export function Footer() {
             © {currentYear} {ADVISOR_PROFILE.fullName} —{" "}
             {ADVISOR_PROFILE.brandName}. Sắc hồng &amp; xanh lá hoa sen Việt Nam.
           </p>
-          <p>
-            Tư vấn lịch trình &amp; hỗ trợ Visa tận tâm • Liên hệ trực tiếp qua
-            Hotline/Zalo chính chủ.
-          </p>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <p>
+              Tư vấn lịch trình &amp; hỗ trợ Visa tận tâm • Liên hệ trực tiếp
+              qua Hotline/Zalo chính chủ.
+            </p>
+            <Link
+              href="/admin"
+              className="font-semibold text-[#F8A4C7]/85 underline-offset-4 transition hover:text-white hover:underline"
+            >
+              Quản lý tour
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

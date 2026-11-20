@@ -6,6 +6,10 @@ import { SmartImage } from "@/components/common/SmartImage";
 import { JOURNEY_STORIES } from "@/data/journeyData";
 
 export function JourneyFeed() {
+  if (JOURNEY_STORIES.length === 0) {
+    return null;
+  }
+
   return (
     <section id="hanh-trinh" className="py-12 sm:py-16 lg:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

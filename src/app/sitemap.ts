@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
-import { TOUR_PACKAGES } from "@/data/toursData";
+import { getStoredTours } from "@/lib/contentStore";
 import { SITE_CONFIG, SITE_URL } from "@/lib/siteConfig";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const tourEntries: MetadataRoute.Sitemap = TOUR_PACKAGES.map((tour) => {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const tours = await getStoredTours();
+  const tourEntries: MetadataRoute.Sitemap = tours.map((tour) => {
     const imageUrl =
       typeof tour.imageUrl === "string"
         ? tour.imageUrl

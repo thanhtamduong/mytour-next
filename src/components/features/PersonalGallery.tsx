@@ -30,17 +30,19 @@ const GALLERY_FILTERS: { id: GalleryCategory; label: string }[] = [
   { id: "inspection", label: "Khảo sát điểm đến" },
 ];
 
-export function PersonalGallery() {
+export function PersonalGallery({
+  photos = PERSONAL_GALLERY,
+}: {
+  photos?: PersonalPhotoItem[];
+}) {
   const [selectedCategory, setSelectedCategory] =
     useState<GalleryCategory>("all");
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
 
   const filteredPhotos = useMemo(() => {
-    if (selectedCategory === "all") return PERSONAL_GALLERY;
-    return PERSONAL_GALLERY.filter(
-      (item) => item.category === selectedCategory
-    );
-  }, [selectedCategory]);
+    if (selectedCategory === "all") return photos;
+    return photos.filter((item) => item.category === selectedCategory);
+  }, [photos, selectedCategory]);
 
   const activePhoto: PersonalPhotoItem | null =
     activePhotoIndex !== null ? (filteredPhotos[activePhotoIndex] ?? null) : null;
@@ -219,8 +221,17 @@ export function PersonalGallery() {
           </div>
 
           {/* Photo List Grid */}
-          <div className="mt-7 sm:mt-8 grid gap-4 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredPhotos.map((item, idx) => (
+          {filteredPhotos.length === 0 ? (
+            <Card tone="mint" className="mt-7 sm:mt-8 py-10 text-center">
+              <p className="text-sm font-semibold text-[#103F2B]/80">
+                {photos.length === 0
+                  ? "Album hình ảnh thực tế đang được cập nhật mới."
+                  : "Chưa có hình ảnh nào trong danh mục này."}
+              </p>
+            </Card>
+          ) : (
+            <div className="mt-7 sm:mt-8 grid gap-4 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredPhotos.map((item, idx) => (
               <button
                 key={item.id}
                 type="button"
@@ -276,8 +287,9 @@ export function PersonalGallery() {
                   </div>
                 </div>
               </button>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

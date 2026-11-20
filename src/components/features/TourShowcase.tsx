@@ -36,34 +36,38 @@ import { ADVISOR_PROFILE } from "@/data/profileData";
 import { TOUR_PACKAGES } from "@/data/toursData";
 import type { TourFilterTab, TourPackage } from "@/types/travel";
 
-const FILTER_TABS: { id: TourFilterTab; label: string; count: number }[] = [
-  { id: "all", label: "Tất cả tuyến tour", count: TOUR_PACKAGES.length },
-  {
-    id: "vietnam",
-    label: "Trong nước (Việt Nam)",
-    count: TOUR_PACKAGES.filter((t) => t.region === "vietnam").length,
-  },
-  {
-    id: "international",
-    label: "Tất cả Quốc tế",
-    count: TOUR_PACKAGES.filter((t) => t.scope === "international").length,
-  },
-  {
-    id: "southeast-asia",
-    label: "Đông Nam Á (Sing • Mã • Indo)",
-    count: TOUR_PACKAGES.filter((t) => t.region === "southeast-asia").length,
-  },
-  {
-    id: "east-asia",
-    label: "Đông Á (Hàn • Nhật)",
-    count: TOUR_PACKAGES.filter((t) => t.region === "east-asia").length,
-  },
-  {
-    id: "americas-oceania",
-    label: "Mỹ • Úc • Canada",
-    count: TOUR_PACKAGES.filter((t) => t.region === "americas-oceania").length,
-  },
-];
+function buildFilterTabs(
+  tours: TourPackage[]
+): { id: TourFilterTab; label: string; count: number }[] {
+  return [
+    { id: "all", label: "Tất cả tuyến tour", count: tours.length },
+    {
+      id: "vietnam",
+      label: "Trong nước (Việt Nam)",
+      count: tours.filter((t) => t.region === "vietnam").length,
+    },
+    {
+      id: "international",
+      label: "Tất cả Quốc tế",
+      count: tours.filter((t) => t.scope === "international").length,
+    },
+    {
+      id: "southeast-asia",
+      label: "Đông Nam Á (Sing • Mã • Indo)",
+      count: tours.filter((t) => t.region === "southeast-asia").length,
+    },
+    {
+      id: "east-asia",
+      label: "Đông Á (Hàn • Nhật)",
+      count: tours.filter((t) => t.region === "east-asia").length,
+    },
+    {
+      id: "americas-oceania",
+      label: "Mỹ • Úc • Canada",
+      count: tours.filter((t) => t.region === "americas-oceania").length,
+    },
+  ];
+}
 
 const MAX_SEARCH_LENGTH = 100;
 
@@ -114,7 +118,11 @@ function getCardOffsetLeft(track: HTMLElement, cardEl: HTMLElement): number {
   return cardRect.left - trackRect.left + track.scrollLeft;
 }
 
-export function TourShowcase() {
+export function TourShowcase({
+  tours = TOUR_PACKAGES,
+}: {
+  tours?: TourPackage[];
+}) {
   const {
     activeTourFilter: activeFilter,
     setActiveTourFilter: onChangeFilter,
@@ -122,6 +130,8 @@ export function TourShowcase() {
     setTourSearch: onChangeSearch,
     openConsult: onBookTour,
   } = useTravelProfile();
+
+  const filterTabs = useMemo(() => buildFilterTabs(tours), [tours]);
 
   const [selectedTour, setSelectedTour] = useState<TourPackage | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -148,7 +158,7 @@ export function TourShowcase() {
   const filteredTours = useMemo(() => {
     const query = normalizeText(externalSearch);
 
-    const matched = TOUR_PACKAGES.filter((tour) => {
+    const matched = tours.filter((tour) => {
       const matchesTab =
         activeFilter === "all"
           ? true
@@ -177,7 +187,7 @@ export function TourShowcase() {
     }
 
     return matched;
-  }, [activeFilter, externalSearch]);
+  }, [activeFilter, externalSearch, tours]);
 
   const totalPages = Math.max(
     1,
@@ -349,11 +359,9 @@ export function TourShowcase() {
     }
   };
 
-  const domesticToursCount = TOUR_PACKAGES.filter(
-    (t) => t.scope === "domestic",
-  ).length;
-  const internationalToursCount = TOUR_PACKAGES.filter(
-    (t) => t.scope === "international",
+  const domesticToursCount = tours.filter((t) => t.scope === "domestic").length;
+  const internationalToursCount = tours.filter(
+    (t) => t.scope === "international"
   ).length;
 
   return (
@@ -441,7 +449,7 @@ export function TourShowcase() {
         <div className="mt-6 sm:mt-8 rounded-3xl border border-[#FBCFE2] bg-white p-3.5 sm:p-5 shadow-sm">
           {/* Region Tabs */}
           <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar md:flex-wrap md:pb-0">
-            {FILTER_TABS.map((tab) => {
+            {filterTabs.map((tab) => {
               const isActive = activeFilter === tab.id;
               return (
                 <button
@@ -594,30 +602,36 @@ export function TourShowcase() {
             className="mt-8 sm:mt-10 py-10 sm:py-12 text-center"
           >
             <p className="text-base font-bold text-[#103F2B]">
-              Chưa tìm thấy tuyến tour khớp với “{externalSearch}”
+              {tours.length === 0
+                ? "Hiện chưa có chương trình tour nào được đăng tải"
+                : externalSearch.trim()
+                  ? `Chưa tìm thấy tuyến tour khớp với “${externalSearch}”`
+                  : "Hiện chưa có tuyến tour nào thuộc nhóm lọc này"}
             </p>
             <p className="mt-1.5 text-sm text-[#103F2B]/75">
               {ADVISOR_PROFILE.nickname} nhận thiết kế tour riêng theo mọi điểm
-              đến bạn yêu cầu!
+              đến và ngân sách bạn yêu cầu!
             </p>
             <div className="mt-5 flex flex-wrap justify-center gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  onChangeFilter("all");
-                  onChangeSearch("");
-                }}
-              >
-                Xem lại tất cả tour
-              </Button>
+              {tours.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    onChangeFilter("all");
+                    onChangeSearch("");
+                  }}
+                >
+                  Xem lại tất cả tour
+                </Button>
+              )}
               <Button
                 variant="primary"
                 size="sm"
                 onClick={() =>
                   onBookTour(
-                    externalSearch
-                      ? `Tour thiết kế riêng đi ${externalSearch}`
+                    externalSearch.trim()
+                      ? `Tour thiết kế riêng đi ${externalSearch.trim()}`
                       : "Tour thiết kế theo yêu cầu",
                   )
                 }

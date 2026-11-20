@@ -26,11 +26,11 @@ export function serializeJsonLd(data: unknown): string {
   );
 }
 
-export function buildHomeJsonLd() {
+export function buildHomeJsonLd(tours: TourPackage[] = TOUR_PACKAGES) {
   const normalizedPhone = normalizePhoneE164(ADVISOR_PROFILE.phone);
-  const totalReviews = TOUR_PACKAGES.reduce((sum, t) => sum + t.reviewCount, 0);
+  const totalReviews = tours.reduce((sum, t) => sum + t.reviewCount, 0);
   const weightedRating =
-    TOUR_PACKAGES.reduce((sum, t) => sum + t.rating * t.reviewCount, 0) /
+    tours.reduce((sum, t) => sum + t.rating * t.reviewCount, 0) /
     Math.max(1, totalReviews);
 
   const sameAs = [
@@ -112,34 +112,42 @@ export function buildHomeJsonLd() {
           { "@type": "Country", name: "Canada" },
         ],
         sameAs,
-        aggregateRating: {
-          "@type": "AggregateRating",
-          ratingValue: Number(weightedRating.toFixed(1)),
-          reviewCount: totalReviews,
-          bestRating: 5,
-          worstRating: 1,
-        },
-        review: JOURNEY_STORIES.map((story) => ({
-          "@type": "Review",
-          author: {
-            "@type": "Person",
-            name: story.customerName,
-          },
-          reviewBody: story.quote,
-          reviewRating: {
-            "@type": "Rating",
-            ratingValue: story.rating,
-            bestRating: 5,
-            worstRating: 1,
-          },
-        })),
+        ...(totalReviews > 0
+          ? {
+              aggregateRating: {
+                "@type": "AggregateRating",
+                ratingValue: Number(weightedRating.toFixed(1)),
+                reviewCount: totalReviews,
+                bestRating: 5,
+                worstRating: 1,
+              },
+            }
+          : {}),
+        ...(JOURNEY_STORIES.length > 0
+          ? {
+              review: JOURNEY_STORIES.map((story) => ({
+                "@type": "Review",
+                author: {
+                  "@type": "Person",
+                  name: story.customerName,
+                },
+                reviewBody: story.quote,
+                reviewRating: {
+                  "@type": "Rating",
+                  ratingValue: story.rating,
+                  bestRating: 5,
+                  worstRating: 1,
+                },
+              })),
+            }
+          : {}),
       },
       {
         "@type": "ItemList",
         "@id": `${SITE_URL}/#tours-list`,
         name: "Danh mục tour du lịch trong nước & quốc tế chọn lọc",
-        numberOfItems: TOUR_PACKAGES.length,
-        itemListElement: TOUR_PACKAGES.map((tour, index) => ({
+        numberOfItems: tours.length,
+        itemListElement: tours.map((tour, index) => ({
           "@type": "ListItem",
           position: index + 1,
           url: `${SITE_URL}/tours/${tour.slug}`,

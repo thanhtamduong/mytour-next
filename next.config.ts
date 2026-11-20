@@ -2,13 +2,39 @@ import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV === "development";
 
+function parseSupabaseHostInfo(): { origin: string; hostname: string } | null {
+  const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  if (!rawUrl) return null;
+
+  try {
+    const parsed = new URL(rawUrl);
+    if (
+      parsed.protocol === "https:" &&
+      parsed.hostname.endsWith(".supabase.co")
+    ) {
+      return { origin: parsed.origin, hostname: parsed.hostname };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+const supabaseHostInfo = parseSupabaseHostInfo();
+const supabaseImgOrigin = supabaseHostInfo
+  ? supabaseHostInfo.origin
+  : "https://*.supabase.co";
+const supabaseConnectOrigin = supabaseHostInfo
+  ? supabaseHostInfo.origin
+  : "https://*.supabase.co";
+
 const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' blob: data: https://images.unsplash.com",
+  `img-src 'self' blob: data: https://images.unsplash.com ${supabaseImgOrigin}`,
   "font-src 'self'",
-  `connect-src 'self'${isDev ? " ws: wss:" : ""}`,
+  `connect-src 'self' ${supabaseConnectOrigin}${isDev ? " ws: wss:" : ""}`,
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -69,6 +95,12 @@ const nextConfig: NextConfig = {
         hostname: "images.unsplash.com",
         port: "",
         pathname: "/photo-*",
+      },
+      {
+        protocol: "https",
+        hostname: supabaseHostInfo ? supabaseHostInfo.hostname : "*.supabase.co",
+        port: "",
+        pathname: "/storage/v1/object/public/tour-media/**",
       },
     ],
   },

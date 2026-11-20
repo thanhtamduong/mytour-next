@@ -100,3 +100,13 @@ export interface JourneyStory {
   imageUrl: ImageSource;
   rating: number;
 }
+
+export type TourFormInput = Omit<TourPackage, "id">;
+
+export type GalleryFormInput = Omit<PersonalPhotoItem, "id">;
+
+export interface CmsStoreData {
+  tours: TourPackage[];
+  gallery: PersonalPhotoItem[];
+  updatedAt: string;
+}
