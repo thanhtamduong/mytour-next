@@ -17,6 +17,7 @@ import { Badge } from "@/components/common/Badge";
 import { Card } from "@/components/common/Card";
 import { LotusMotif } from "@/components/common/LotusMotif";
 import { Modal } from "@/components/common/Modal";
+import { PagedSlideCarousel } from "@/components/common/PagedSlideCarousel";
 import { SectionTitle } from "@/components/common/SectionTitle";
 import { SmartImage } from "@/components/common/SmartImage";
 import { PERSONAL_GALLERY } from "@/data/galleryData";
@@ -45,7 +46,9 @@ export function PersonalGallery({
   }, [photos, selectedCategory]);
 
   const activePhoto: PersonalPhotoItem | null =
-    activePhotoIndex !== null ? (filteredPhotos[activePhotoIndex] ?? null) : null;
+    activePhotoIndex !== null
+      ? (filteredPhotos[activePhotoIndex] ?? null)
+      : null;
 
   const handleNext = () => {
     if (activePhotoIndex === null || filteredPhotos.length === 0) return;
@@ -55,7 +58,7 @@ export function PersonalGallery({
   const handlePrev = () => {
     if (activePhotoIndex === null || filteredPhotos.length === 0) return;
     setActivePhotoIndex(
-      (activePhotoIndex - 1 + filteredPhotos.length) % filteredPhotos.length
+      (activePhotoIndex - 1 + filteredPhotos.length) % filteredPhotos.length,
     );
   };
 
@@ -87,8 +90,7 @@ export function PersonalGallery({
               </div>
 
               <h3 className="mt-4 sm:mt-5 text-lg sm:text-2xl font-bold text-[#103F2B] leading-snug">
-                Làm nghề du lịch bằng chữ “Tâm” và sự chỉn chu của người bản
-                địa
+                Làm nghề du lịch bằng chữ “Tâm” và sự chỉn chu của người bản địa
               </h3>
 
               <blockquote className="mt-4 rounded-2xl border border-[#FBCFE2] bg-white/85 p-3.5 sm:p-4 text-sm sm:text-base italic leading-relaxed text-[#A51950]">
@@ -220,7 +222,7 @@ export function PersonalGallery({
             </div>
           </div>
 
-          {/* Photo List Grid */}
+          {/* Photo List Carousel (1 row x 3 columns on desktop, paged) */}
           {filteredPhotos.length === 0 ? (
             <Card tone="mint" className="mt-7 sm:mt-8 py-10 text-center">
               <p className="text-sm font-semibold text-[#103F2B]/80">
@@ -230,65 +232,92 @@ export function PersonalGallery({
               </p>
             </Card>
           ) : (
-            <div className="mt-7 sm:mt-8 grid gap-4 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredPhotos.map((item, idx) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setActivePhotoIndex(idx)}
-                className="group relative flex flex-col overflow-hidden rounded-3xl border border-[#FBCFE2]/80 bg-white text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-[#E13D7D]/12 cursor-pointer"
-              >
-                <div className="relative aspect-[4/3] w-full overflow-hidden">
-                  <SmartImage
-                    src={item.imageUrl}
-                    alt={`${item.title} — ${item.location}`}
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    className={`object-cover transition-transform duration-500 group-hover:scale-105 ${
-                      item.category === "portrait" ? "object-[50%_22%]" : ""
-                    }`}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0B2D1E]/75 via-transparent to-transparent opacity-80 transition group-hover:opacity-95" />
+            <PagedSlideCarousel
+              items={filteredPhotos}
+              filterKey={selectedCategory}
+              pageSizes={{ mobile: 1, tablet: 2, desktop: 3 }}
+              gridClassName="grid content-start gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+              summaryLabel="khoảnh khắc"
+              topSpacingClassName="mt-7 sm:mt-8"
+              ariaLabels={{
+                prev: "Slide ảnh trước",
+                next: "Slide ảnh tiếp theo",
+                tablist: "Chọn trang album ảnh",
+                pagePrefix: "Xem slide ảnh",
+              }}
+              extraSummaryActions={
+                selectedCategory !== "all" ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedCategory("all");
+                      setActivePhotoIndex(null);
+                    }}
+                    className="font-semibold text-[#C82564] hover:underline cursor-pointer"
+                  >
+                    Xem tất cả ảnh
+                  </button>
+                ) : undefined
+              }
+              renderItem={(item, globalIndex) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  data-carousel-drag-card="true"
+                  onClick={() => setActivePhotoIndex(globalIndex)}
+                  className="group relative flex h-full w-full flex-col overflow-hidden rounded-3xl border border-[#FBCFE2]/80 bg-white text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-[#E13D7D]/12 cursor-pointer"
+                >
+                  <div className="relative aspect-[4/3] w-full overflow-hidden">
+                    <SmartImage
+                      src={item.imageUrl}
+                      alt={`${item.title} — ${item.location}`}
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className={`object-cover transition-transform duration-500 group-hover:scale-105 ${
+                        item.category === "portrait" ? "object-[50%_22%]" : ""
+                      }`}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0B2D1E]/75 via-transparent to-transparent opacity-80 transition group-hover:opacity-95" />
 
-                  <div className="absolute left-3 top-3 sm:left-3.5 sm:top-3.5 flex items-center gap-2">
-                    <Badge
-                      tone={item.category === "portrait" ? "pink" : "green"}
-                      icon={<LuCamera className="h-3 w-3" />}
-                    >
-                      {item.categoryLabel}
-                    </Badge>
-                  </div>
+                    <div className="absolute left-3 top-3 sm:left-3.5 sm:top-3.5 flex items-center gap-2">
+                      <Badge
+                        tone={item.category === "portrait" ? "pink" : "green"}
+                        icon={<LuCamera className="h-3 w-3" />}
+                      >
+                        {item.categoryLabel}
+                      </Badge>
+                    </div>
 
-                  <span className="absolute right-3 top-3 sm:right-3.5 sm:top-3.5 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#103F2B] opacity-90 shadow-sm transition lg:opacity-0 lg:group-hover:opacity-100">
-                    <LuMaximize2 className="h-4 w-4" />
-                  </span>
-
-                  <div className="absolute bottom-3 left-3 right-3 sm:bottom-3.5 sm:left-3.5 sm:right-3.5 flex items-center justify-between gap-2 text-[11px] sm:text-xs font-medium text-white">
-                    <span className="inline-flex min-w-0 items-center gap-1 rounded-full bg-black/40 px-2.5 py-1 backdrop-blur-sm">
-                      <LuMapPin className="h-3 w-3 shrink-0 text-[#F8A4C7]" />
-                      <span className="truncate">{item.location}</span>
+                    <span className="absolute right-3 top-3 sm:right-3.5 sm:top-3.5 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#103F2B] opacity-90 shadow-sm transition lg:opacity-0 lg:group-hover:opacity-100">
+                      <LuMaximize2 className="h-4 w-4" />
                     </span>
-                    <span className="inline-flex shrink-0 items-center gap-1 text-[#FCE7F0]">
-                      <LuHeart className="h-3.5 w-3.5 fill-[#F26B9F] text-[#F26B9F]" />
-                      <span className="hidden min-[380px]:inline">
-                        {item.dateLabel}
+
+                    <div className="absolute bottom-3 left-3 right-3 sm:bottom-3.5 sm:left-3.5 sm:right-3.5 flex items-center justify-between gap-2 text-[11px] sm:text-xs font-medium text-white">
+                      <span className="inline-flex min-w-0 items-center gap-1 rounded-full bg-black/40 px-2.5 py-1 backdrop-blur-sm">
+                        <LuMapPin className="h-3 w-3 shrink-0 text-[#F8A4C7]" />
+                        <span className="truncate">{item.location}</span>
                       </span>
-                    </span>
+                      <span className="inline-flex shrink-0 items-center gap-1 text-[#FCE7F0]">
+                        <LuHeart className="h-3.5 w-3.5 fill-[#F26B9F] text-[#F26B9F]" />
+                        <span className="hidden min-[380px]:inline">
+                          {item.dateLabel}
+                        </span>
+                      </span>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
-                  <div>
-                    <h4 className="text-base font-bold text-[#103F2B] group-hover:text-[#C82564] transition-colors">
-                      {item.title}
-                    </h4>
-                    <p className="mt-1.5 text-sm leading-relaxed text-[#103F2B]/75 line-clamp-2">
-                      {item.caption}
-                    </p>
+                  <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
+                    <div>
+                      <h4 className="text-base font-bold text-[#103F2B] group-hover:text-[#C82564] transition-colors">
+                        {item.title}
+                      </h4>
+                      <p className="mt-1.5 text-sm leading-relaxed text-[#103F2B]/75 line-clamp-2">
+                        {item.caption}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </button>
-              ))}
-            </div>
+                </button>
+              )}
+            />
           )}
         </div>
       </div>

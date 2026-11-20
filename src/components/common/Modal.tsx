@@ -9,6 +9,7 @@ interface ModalProps {
   onClose: () => void;
   title?: string;
   maxWidthClass?: string;
+  preventClose?: boolean;
   children: ReactNode;
 }
 
@@ -17,13 +18,14 @@ export function Modal({
   onClose,
   title,
   maxWidthClass = "max-w-3xl",
+  preventClose = false,
   children,
 }: ModalProps) {
   useEffect(() => {
     if (!isOpen) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+      if (event.key === "Escape" && !preventClose) {
         onClose();
       }
     };
@@ -36,9 +38,15 @@ export function Modal({
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, preventClose]);
 
   if (!isOpen) return null;
+
+  const handleBackdropClose = () => {
+    if (!preventClose) {
+      onClose();
+    }
+  };
 
   return (
     <div
@@ -46,7 +54,7 @@ export function Modal({
       role="dialog"
       aria-modal="true"
       aria-label={title || "Cửa sổ thông tin"}
-      onClick={onClose}
+      onClick={handleBackdropClose}
     >
       <div
         className={`relative w-full ${maxWidthClass} max-h-[92dvh] sm:max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-[#FFFDFC] border border-[#FBCFE2] shadow-2xl`}
@@ -62,8 +70,9 @@ export function Modal({
           )}
           <button
             type="button"
-            onClick={onClose}
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FCE7F0] text-[#A51950] transition hover:bg-[#E13D7D] hover:text-white cursor-pointer"
+            onClick={handleBackdropClose}
+            disabled={preventClose}
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FCE7F0] text-[#A51950] transition hover:bg-[#E13D7D] hover:text-white disabled:opacity-45 disabled:cursor-not-allowed cursor-pointer"
             aria-label="Đóng cửa sổ"
           >
             <LuX className="w-5 h-5" />

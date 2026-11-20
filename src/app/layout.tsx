@@ -5,6 +5,7 @@ import { FloatingContact } from "@/components/layout/FloatingContact";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
 import { PeachBlossomRain } from "@/components/layout/PeachBlossomRain";
+import { SeasonSwitcher } from "@/components/layout/SeasonSwitcher";
 import { TravelProfileProvider } from "@/components/providers/TravelProfileContext";
 import { ADVISOR_PROFILE } from "@/data/profileData";
 import { SITE_CONFIG, SITE_URL } from "@/lib/siteConfig";
@@ -92,6 +93,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             {children}
             <Footer />
             <PeachBlossomRain />
+            <SeasonSwitcher />
             <FloatingContact />
             <ConsultModal />
           </div>

@@ -1,19 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
-import type { MouseEvent as ReactMouseEvent } from "react";
+import { useMemo, useState } from "react";
 import {
   LuCalendarDays,
   LuCheck,
-  LuChevronLeft,
-  LuChevronRight,
   LuClock,
   LuEarth,
   LuMapPin,
@@ -29,6 +20,7 @@ import { Badge } from "@/components/common/Badge";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import { Modal } from "@/components/common/Modal";
+import { PagedSlideCarousel } from "@/components/common/PagedSlideCarousel";
 import { SectionTitle } from "@/components/common/SectionTitle";
 import { SmartImage } from "@/components/common/SmartImage";
 import { useTravelProfile } from "@/components/providers/TravelProfileContext";
@@ -96,28 +88,6 @@ function normalizeText(value: string): string {
     .trim();
 }
 
-function getCardsPerView(): number {
-  if (typeof window === "undefined") return 3;
-  if (window.innerWidth >= 1024) return 3;
-  if (window.innerWidth >= 640) return 2;
-  return 1;
-}
-
-function subscribeResize(callback: () => void) {
-  window.addEventListener("resize", callback);
-  return () => window.removeEventListener("resize", callback);
-}
-
-function useCardsPerView(): number {
-  return useSyncExternalStore(subscribeResize, getCardsPerView, () => 3);
-}
-
-function getCardOffsetLeft(track: HTMLElement, cardEl: HTMLElement): number {
-  const trackRect = track.getBoundingClientRect();
-  const cardRect = cardEl.getBoundingClientRect();
-  return cardRect.left - trackRect.left + track.scrollLeft;
-}
-
 export function TourShowcase({
   tours = TOUR_PACKAGES,
 }: {
@@ -132,28 +102,10 @@ export function TourShowcase({
   } = useTravelProfile();
 
   const filterTabs = useMemo(() => buildFilterTabs(tours), [tours]);
-
   const [selectedTour, setSelectedTour] = useState<TourPackage | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [slideState, setSlideState] = useState<{
-    key: string;
-    page: number;
-    canPrev: boolean;
-    canNext: boolean;
-  }>({
-    key: "",
-    page: 0,
-    canPrev: false,
-    canNext: false,
-  });
-
-  const trackRef = useRef<HTMLDivElement>(null);
-  const suppressClickRef = useRef(false);
-  const dragCleanupRef = useRef<(() => void) | null>(null);
-  const cardsPerView = useCardsPerView();
 
   const isSearching = externalSearch.trim().length > 0;
-  const filterKey = `${activeFilter}::${externalSearch.trim()}::${cardsPerView}`;
+  const filterKey = `${activeFilter}::${externalSearch.trim()}`;
 
   const filteredTours = useMemo(() => {
     const query = normalizeText(externalSearch);
@@ -188,176 +140,6 @@ export function TourShowcase({
 
     return matched;
   }, [activeFilter, externalSearch, tours]);
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredTours.length / cardsPerView),
-  );
-  const activePage =
-    slideState.key === filterKey
-      ? Math.min(slideState.page, totalPages - 1)
-      : 0;
-  const canPrev = slideState.key === filterKey ? slideState.canPrev : false;
-  const canNext =
-    slideState.key === filterKey
-      ? slideState.canNext
-      : filteredTours.length > cardsPerView;
-
-  useEffect(() => {
-    trackRef.current?.scrollTo({ left: 0, behavior: "auto" });
-  }, [filterKey]);
-
-  useEffect(() => {
-    return () => {
-      dragCleanupRef.current?.();
-    };
-  }, []);
-
-  const handleTrackScroll = () => {
-    const track = trackRef.current;
-    if (!track) return;
-
-    const maxScroll = track.scrollWidth - track.clientWidth;
-    if (maxScroll <= 6) {
-      setSlideState({
-        key: filterKey,
-        page: 0,
-        canPrev: false,
-        canNext: false,
-      });
-      return;
-    }
-
-    const scrollLeft = track.scrollLeft;
-    const nextCanPrev = scrollLeft > 6;
-    const nextCanNext = scrollLeft < maxScroll - 6;
-
-    let nextPage: number;
-    if (scrollLeft >= maxScroll - 8) {
-      nextPage = totalPages - 1;
-    } else {
-      const children = Array.from(track.children) as HTMLElement[];
-      let closestIdx = 0;
-      let minDiff = Number.POSITIVE_INFINITY;
-      children.forEach((el, idx) => {
-        const cardOffset = getCardOffsetLeft(track, el);
-        const diff = Math.abs(cardOffset - scrollLeft);
-        if (diff < minDiff) {
-          minDiff = diff;
-          closestIdx = idx;
-        }
-      });
-      nextPage = Math.min(
-        totalPages - 1,
-        Math.floor(closestIdx / cardsPerView + 0.35),
-      );
-    }
-
-    setSlideState({
-      key: filterKey,
-      page: nextPage,
-      canPrev: nextCanPrev,
-      canNext: nextCanNext,
-    });
-  };
-
-  const scrollToPage = (pageIndex: number) => {
-    const track = trackRef.current;
-    if (!track) return;
-
-    const clampedPage = Math.max(0, Math.min(pageIndex, totalPages - 1));
-    const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth);
-
-    if (clampedPage >= totalPages - 1) {
-      track.scrollTo({ left: maxScroll, behavior: "smooth" });
-      return;
-    }
-
-    const targetCardIdx = clampedPage * cardsPerView;
-    const cardEl = track.children[targetCardIdx] as HTMLElement | undefined;
-    if (cardEl) {
-      const targetLeft = getCardOffsetLeft(track, cardEl);
-      track.scrollTo({
-        left: Math.max(0, Math.min(targetLeft, maxScroll)),
-        behavior: "smooth",
-      });
-    }
-  };
-
-  const handleTrackMouseDown = (event: ReactMouseEvent<HTMLDivElement>) => {
-    if (event.button !== 0) return;
-    if ((event.target as HTMLElement).closest("button, a")) return;
-
-    const track = trackRef.current;
-    if (!track || track.scrollWidth <= track.clientWidth + 4) return;
-
-    const startX = event.clientX;
-    const startScrollLeft = track.scrollLeft;
-    let dragged = false;
-
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const dx = moveEvent.clientX - startX;
-      if (!dragged && Math.abs(dx) > 6) {
-        dragged = true;
-        setIsDragging(true);
-        window.getSelection()?.removeAllRanges();
-      }
-      if (dragged) {
-        track.scrollLeft = startScrollLeft - dx;
-      }
-    };
-
-    const cleanup = () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-      dragCleanupRef.current = null;
-    };
-
-    const handleMouseUp = () => {
-      cleanup();
-      if (!dragged) return;
-
-      suppressClickRef.current = true;
-      window.setTimeout(() => {
-        suppressClickRef.current = false;
-      }, 120);
-
-      setIsDragging(false);
-
-      const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth);
-      const moved = track.scrollLeft - startScrollLeft;
-      const bias = Math.abs(moved) > 45 ? Math.sign(moved) * 80 : 0;
-      const targetSearchLeft = Math.max(
-        0,
-        Math.min(track.scrollLeft + bias, maxScroll),
-      );
-
-      const children = Array.from(track.children) as HTMLElement[];
-      let nearestLeft = track.scrollLeft;
-      let minDiff = Number.POSITIVE_INFINITY;
-      children.forEach((el) => {
-        const cardOffset = Math.min(getCardOffsetLeft(track, el), maxScroll);
-        const diff = Math.abs(cardOffset - targetSearchLeft);
-        if (diff < minDiff) {
-          minDiff = diff;
-          nearestLeft = cardOffset;
-        }
-      });
-      track.scrollTo({ left: nearestLeft, behavior: "smooth" });
-    };
-
-    dragCleanupRef.current?.();
-    dragCleanupRef.current = cleanup;
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-  };
-
-  const handleTrackClickCapture = (event: ReactMouseEvent<HTMLDivElement>) => {
-    if (suppressClickRef.current) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-  };
 
   const domesticToursCount = tours.filter((t) => t.scope === "domestic").length;
   const internationalToursCount = tours.filter(
@@ -534,68 +316,7 @@ export function TourShowcase({
           </div>
         </div>
 
-        {/* Result summary & Slide Controls */}
-        {filteredTours.length > 0 && (
-          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 px-1">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-[#103F2B]/75">
-              <span>
-                Có{" "}
-                <strong className="text-[#103F2B]">
-                  {filteredTours.length}
-                </strong>{" "}
-                tuyến tour
-                {totalPages > 1 && (
-                  <span className="text-[#103F2B]/60">
-                    {" "}
-                    • Slide{" "}
-                    <strong className="text-[#C82564]">{activePage + 1}</strong>
-                    /{totalPages}
-                  </span>
-                )}
-              </span>
-              {(activeFilter !== "all" || isSearching) && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onChangeFilter("all");
-                    onChangeSearch("");
-                  }}
-                  className="font-semibold text-[#C82564] hover:underline cursor-pointer"
-                >
-                  Xem tất cả tuyến tour
-                </button>
-              )}
-            </div>
-
-            {totalPages > 1 && (
-              <div className="flex items-center gap-2">
-                <span className="hidden sm:inline text-xs text-[#103F2B]/60 mr-1">
-                  Lướt hoặc bấm mũi tên
-                </span>
-                <button
-                  type="button"
-                  onClick={() => scrollToPage(activePage - 1)}
-                  disabled={!canPrev}
-                  aria-label="Slide tour trước"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#FBCFE2] bg-white text-[#103F2B] shadow-sm transition hover:border-[#E13D7D] hover:bg-[#FFF5F8] hover:text-[#C82564] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  <LuChevronLeft className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollToPage(activePage + 1)}
-                  disabled={!canNext}
-                  aria-label="Slide tour tiếp theo"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#FBCFE2] bg-white text-[#103F2B] shadow-sm transition hover:border-[#E13D7D] hover:bg-[#FFF5F8] hover:text-[#C82564] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  <LuChevronRight className="h-4 w-4" />
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Tour Slide Carousel */}
+        {/* Tour Slide Carousel (2 rows x 3 columns on desktop, paged) */}
         {filteredTours.length === 0 ? (
           <Card
             tone="blush"
@@ -641,242 +362,162 @@ export function TourShowcase({
             </div>
           </Card>
         ) : (
-          <>
-            <div className="relative mt-3">
-              {totalPages > 1 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => scrollToPage(activePage - 1)}
-                    disabled={!canPrev}
-                    aria-label="Slide tour trước"
-                    className="absolute -left-3 lg:-left-5 top-1/2 z-10 hidden -translate-y-1/2 md:inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#FBCFE2] bg-white/95 text-[#103F2B] shadow-lg backdrop-blur-sm transition hover:border-[#E13D7D] hover:bg-[#FFF5F8] hover:text-[#C82564] disabled:opacity-0 disabled:pointer-events-none cursor-pointer"
-                  >
-                    <LuChevronLeft className="h-5 w-5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => scrollToPage(activePage + 1)}
-                    disabled={!canNext}
-                    aria-label="Slide tour tiếp theo"
-                    className="absolute -right-3 lg:-right-5 top-1/2 z-10 hidden -translate-y-1/2 md:inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#FBCFE2] bg-white/95 text-[#103F2B] shadow-lg backdrop-blur-sm transition hover:border-[#E13D7D] hover:bg-[#FFF5F8] hover:text-[#C82564] disabled:opacity-0 disabled:pointer-events-none cursor-pointer"
-                  >
-                    <LuChevronRight className="h-5 w-5" />
-                  </button>
-                </>
-              )}
-
-              <div
-                ref={trackRef}
-                onScroll={handleTrackScroll}
-                onMouseDown={handleTrackMouseDown}
-                onClickCapture={handleTrackClickCapture}
-                className={`flex items-stretch gap-4 lg:gap-6 overflow-x-auto no-scrollbar pt-1.5 pb-4 ${
-                  isDragging
-                    ? "snap-none select-none cursor-grabbing"
-                    : `snap-x snap-proximity ${totalPages > 1 ? "cursor-grab" : ""}`
-                }`}
-              >
-                {filteredTours.map((tour) => {
-                  const isDomestic = tour.scope === "domestic";
-                  return (
-                    <Card
-                      key={tour.id}
-                      padding="none"
-                      hoverable
-                      className="w-[86%] shrink-0 snap-start sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-3rem)/3)] flex flex-col overflow-hidden"
-                    >
-                      {/* Image Header */}
-                      <div className="relative aspect-[16/10] w-full overflow-hidden">
-                        <SmartImage
-                          src={tour.imageUrl}
-                          alt={`${tour.title} — ${tour.destination}`}
-                          sizes="(max-width: 640px) 86vw, (max-width: 1024px) 50vw, 33vw"
-                          className="object-cover transition-transform duration-500 hover:scale-105"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#0B2D1E]/75 via-transparent to-black/20" />
-
-                        <div className="absolute left-3 top-3 sm:left-3.5 sm:top-3.5 flex flex-wrap items-center gap-1.5 sm:gap-2 pr-3">
-                          <Badge
-                            tone={isDomestic ? "green" : "pink"}
-                            icon={
-                              isDomestic ? (
-                                <LuMapPin className="h-3 w-3" />
-                              ) : (
-                                <LuPlane className="h-3 w-3" />
-                              )
-                            }
-                          >
-                            {isDomestic ? "Trong nước" : "Quốc tế"}
-                          </Badge>
-                          {tour.badgeText && (
-                            <Badge
-                              tone="glass"
-                              icon={
-                                <LuSparkles className="h-3 w-3 text-[#E13D7D]" />
-                              }
-                            >
-                              {tour.badgeText}
-                            </Badge>
-                          )}
-                        </div>
-
-                        <div className="absolute bottom-3 left-3 right-3 sm:left-3.5 sm:right-3.5 flex items-center justify-between gap-2 text-xs font-semibold text-white">
-                          <span className="inline-flex items-center gap-1 rounded-full bg-black/40 px-2.5 py-1 backdrop-blur-sm">
-                            <LuClock className="h-3.5 w-3.5 text-[#F8A4C7]" />
-                            {tour.duration}
-                          </span>
-                          <span className="inline-flex items-center gap-1 rounded-full bg-black/40 px-2.5 py-1 backdrop-blur-sm">
-                            <LuStar className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                            {tour.rating.toFixed(1)} ({tour.reviewCount})
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Body */}
-                      <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
-                        <div>
-                          <div className="flex items-center justify-between gap-2 text-xs font-semibold">
-                            <span
-                              className={`truncate ${
-                                isDomestic ? "text-[#186C42]" : "text-[#C82564]"
-                              }`}
-                            >
-                              {tour.countryOrProvince}
-                            </span>
-                            <span className="shrink-0 text-[#103F2B]/55">
-                              Mã: {tour.code}
-                            </span>
-                          </div>
-
-                          <h3 className="mt-1.5 text-base sm:text-lg font-bold leading-snug text-[#103F2B] line-clamp-2">
-                            <Link
-                              href={`/tours/${tour.slug}`}
-                              className="transition-colors hover:text-[#C82564]"
-                            >
-                              {tour.title}
-                            </Link>
-                          </h3>
-
-                          <div className="mt-2.5 flex items-center gap-2 text-xs text-[#103F2B]/70">
-                            <LuPlaneTakeoff className="h-3.5 w-3.5 shrink-0 text-[#186C42]" />
-                            <span>Khởi hành: {tour.departureFrom}</span>
-                          </div>
-
-                          <ul className="mt-3.5 space-y-1.5">
-                            {tour.highlights.slice(0, 2).map((point) => (
-                              <li
-                                key={point}
-                                className="flex items-start gap-2 text-xs leading-relaxed text-[#103F2B]/80"
-                              >
-                                <LuCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#186C42]" />
-                                <span className="line-clamp-2">{point}</span>
-                              </li>
-                            ))}
-                          </ul>
-
-                          {tour.visaNote && (
-                            <div className="mt-3 rounded-xl bg-[#FFF5F8] px-3 py-2 text-[11px] font-medium text-[#A51950] border border-[#FBCFE2]/70">
-                              <span className="font-bold">Visa: </span>
-                              {tour.visaNote}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Footer Buttons */}
-                        <div className="mt-5 border-t border-[#FCE7F0] pt-4">
-                          <div className="grid grid-cols-1 min-[370px]:grid-cols-2 gap-2.5">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setSelectedTour(tour)}
-                              fullWidth
-                            >
-                              Xem lịch trình
-                            </Button>
-                            <Button
-                              variant={isDomestic ? "secondary" : "primary"}
-                              size="sm"
-                              onClick={() => onBookTour(tour.title)}
-                              fullWidth
-                            >
-                              Tư vấn ngay
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Bottom Slide Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-2 flex items-center justify-between gap-3 sm:justify-center">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => scrollToPage(activePage - 1)}
-                  disabled={!canPrev}
-                  leftIcon={<LuChevronLeft className="h-4 w-4" />}
+          <PagedSlideCarousel
+            items={filteredTours}
+            filterKey={filterKey}
+            pageSizes={{ mobile: 2, tablet: 4, desktop: 6 }}
+            gridClassName="grid content-start gap-4 lg:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+            summaryLabel="tuyến tour"
+            ariaLabels={{
+              prev: "Slide tour trước",
+              next: "Slide tour tiếp theo",
+              tablist: "Chọn trang slide tour",
+              pagePrefix: "Xem slide",
+            }}
+            extraSummaryActions={
+              activeFilter !== "all" || isSearching ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onChangeFilter("all");
+                    onChangeSearch("");
+                  }}
+                  className="font-semibold text-[#C82564] hover:underline cursor-pointer"
                 >
-                  <span className="hidden min-[380px]:inline">Trước</span>
-                </Button>
+                  Xem tất cả tuyến tour
+                </button>
+              ) : undefined
+            }
+            renderItem={(tour) => {
+              const isDomestic = tour.scope === "domestic";
+              return (
+                <Card
+                  key={tour.id}
+                  padding="none"
+                  hoverable
+                  className="flex h-full flex-col overflow-hidden"
+                >
+                  {/* Image Header */}
+                  <div className="relative aspect-[16/10] w-full overflow-hidden">
+                    <SmartImage
+                      src={tour.imageUrl}
+                      alt={`${tour.title} — ${tour.destination}`}
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover transition-transform duration-500 hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0B2D1E]/75 via-transparent to-black/20" />
 
-                {totalPages <= 8 ? (
-                  <div
-                    className="flex items-center gap-1.5"
-                    role="tablist"
-                    aria-label="Chọn trang slide tour"
-                  >
-                    {Array.from({ length: totalPages }).map((_, idx) => {
-                      const isCurrent = idx === activePage;
-                      return (
-                        <button
-                          key={idx}
-                          type="button"
-                          role="tab"
-                          onClick={() => scrollToPage(idx)}
-                          aria-label={`Xem slide ${idx + 1}`}
-                          aria-selected={isCurrent}
-                          className={`h-2.5 rounded-full transition-all cursor-pointer ${
-                            isCurrent
-                              ? "w-7 bg-[#E13D7D]"
-                              : "w-2.5 bg-[#FBCFE2] hover:bg-[#F472A8]"
-                          }`}
-                        />
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2.5">
-                    <div className="h-2 w-28 sm:w-44 overflow-hidden rounded-full bg-[#FCE7F0]">
-                      <div
-                        className="h-full rounded-full bg-[#E13D7D] transition-all duration-300"
-                        style={{
-                          width: `${((activePage + 1) / totalPages) * 100}%`,
-                        }}
-                      />
+                    <div className="absolute left-3 top-3 sm:left-3.5 sm:top-3.5 flex flex-wrap items-center gap-1.5 sm:gap-2 pr-3">
+                      <Badge
+                        tone={isDomestic ? "green" : "pink"}
+                        icon={
+                          isDomestic ? (
+                            <LuMapPin className="h-3 w-3" />
+                          ) : (
+                            <LuPlane className="h-3 w-3" />
+                          )
+                        }
+                      >
+                        {isDomestic ? "Trong nước" : "Quốc tế"}
+                      </Badge>
+                      {tour.badgeText && (
+                        <Badge
+                          tone="glass"
+                          icon={<LuSparkles className="h-3 w-3 text-[#E13D7D]" />}
+                        >
+                          {tour.badgeText}
+                        </Badge>
+                      )}
                     </div>
-                    <span className="text-xs font-bold text-[#C82564]">
-                      {activePage + 1}/{totalPages}
-                    </span>
-                  </div>
-                )}
 
-                <Button
-                  variant="soft-pink"
-                  size="sm"
-                  onClick={() => scrollToPage(activePage + 1)}
-                  disabled={!canNext}
-                  rightIcon={<LuChevronRight className="h-4 w-4" />}
-                >
-                  <span className="hidden min-[380px]:inline">Tiếp</span>
-                </Button>
-              </div>
-            )}
-          </>
+                    <div className="absolute bottom-3 left-3 right-3 sm:left-3.5 sm:right-3.5 flex items-center justify-between gap-2 text-xs font-semibold text-white">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-black/40 px-2.5 py-1 backdrop-blur-sm">
+                        <LuClock className="h-3.5 w-3.5 text-[#F8A4C7]" />
+                        {tour.duration}
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-black/40 px-2.5 py-1 backdrop-blur-sm">
+                        <LuStar className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                        {tour.rating.toFixed(1)} ({tour.reviewCount})
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Body */}
+                  <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
+                    <div>
+                      <div className="flex items-center justify-between gap-2 text-xs font-semibold">
+                        <span
+                          className={`truncate ${
+                            isDomestic ? "text-[#186C42]" : "text-[#C82564]"
+                          }`}
+                        >
+                          {tour.countryOrProvince}
+                        </span>
+                        <span className="shrink-0 text-[#103F2B]/55">
+                          Mã: {tour.code}
+                        </span>
+                      </div>
+
+                      <h3 className="mt-1.5 text-base sm:text-lg font-bold leading-snug text-[#103F2B] line-clamp-2">
+                        <Link
+                          href={`/tours/${tour.slug}`}
+                          className="transition-colors hover:text-[#C82564]"
+                        >
+                          {tour.title}
+                        </Link>
+                      </h3>
+
+                      <div className="mt-2.5 flex items-center gap-2 text-xs text-[#103F2B]/70">
+                        <LuPlaneTakeoff className="h-3.5 w-3.5 shrink-0 text-[#186C42]" />
+                        <span>Khởi hành: {tour.departureFrom}</span>
+                      </div>
+
+                      <ul className="mt-3.5 space-y-1.5">
+                        {tour.highlights.slice(0, 2).map((point) => (
+                          <li
+                            key={point}
+                            className="flex items-start gap-2 text-xs leading-relaxed text-[#103F2B]/80"
+                          >
+                            <LuCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#186C42]" />
+                            <span className="line-clamp-2">{point}</span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      {tour.visaNote && (
+                        <div className="mt-3 rounded-xl bg-[#FFF5F8] px-3 py-2 text-[11px] font-medium text-[#A51950] border border-[#FBCFE2]/70">
+                          <span className="font-bold">Visa: </span>
+                          {tour.visaNote}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Footer Buttons */}
+                    <div className="mt-5 border-t border-[#FCE7F0] pt-4">
+                      <div className="grid grid-cols-1 min-[370px]:grid-cols-2 gap-2.5">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedTour(tour)}
+                          fullWidth
+                        >
+                          Xem lịch trình
+                        </Button>
+                        <Button
+                          variant={isDomestic ? "secondary" : "primary"}
+                          size="sm"
+                          onClick={() => onBookTour(tour.title)}
+                          fullWidth
+                        >
+                          Tư vấn ngay
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              );
+            }}
+          />
         )}
       </div>
 

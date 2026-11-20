@@ -4,6 +4,7 @@ import type {
   ButtonHTMLAttributes,
   ReactNode,
 } from "react";
+import { LuLoader2 } from "@/components/common/Icons";
 import { sanitizeHref } from "@/lib/sanitize";
 
 type ButtonVariant =
@@ -29,6 +30,7 @@ interface BaseProps {
 type ButtonAsButton = BaseProps &
   Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof BaseProps> & {
     href?: undefined;
+    loading?: boolean;
   };
 
 type ButtonAsLink = BaseProps &
@@ -153,16 +155,26 @@ export function Button(props: ButtonProps) {
     className,
     children,
     type = "button",
+    loading = false,
+    disabled,
     ...buttonProps
   } = props;
+
+  const effectiveLeftIcon = loading ? (
+    <LuLoader2 className="h-4 w-4 animate-spin" />
+  ) : (
+    leftIcon
+  );
 
   return (
     <button
       type={type}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
       className={getButtonClassNames({ variant, size, fullWidth, className })}
       {...buttonProps}
     >
-      {renderButtonContent(children, leftIcon, rightIcon)}
+      {renderButtonContent(children, effectiveLeftIcon, rightIcon)}
     </button>
   );
 }

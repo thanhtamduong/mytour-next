@@ -44,6 +44,12 @@
     color: #103F2B;
     overflow-x: clip;
   }
+
+  /* Ẩn nút con mắt mặc định của Microsoft Edge để dùng nút toggle tùy chỉnh */
+  input[type="password"]::-ms-reveal,
+  input[type="password"]::-ms-clear {
+    display: none;
+  }
 }
 
 /* Subtle decorative gradient mesh inspired by Vietnamese lotus ponds */

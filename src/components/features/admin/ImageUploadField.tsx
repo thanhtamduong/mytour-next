@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import type { ChangeEvent } from "react";
-import { LuCamera, LuUpload } from "@/components/common/Icons";
+import { LuCamera, LuLoader2, LuUpload } from "@/components/common/Icons";
 import { SmartImage } from "@/components/common/SmartImage";
 import { isValidImageUrlString } from "@/lib/adminValidation";
 
@@ -102,6 +102,16 @@ export function ImageUploadField({
                 </span>
               </div>
             )}
+            {uploading && (
+              <div
+                role="status"
+                aria-live="polite"
+                className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[#0B2D1E]/55 text-white backdrop-blur-[2px]"
+              >
+                <LuLoader2 className="h-6 w-6 animate-spin text-[#F8A4C7]" />
+                <span className="text-xs font-bold">Đang tải ảnh lên...</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -118,9 +128,13 @@ export function ImageUploadField({
             type="button"
             disabled={uploading}
             onClick={() => fileInputRef.current?.click()}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-[#E13D7D]/55 bg-white px-4 py-3 text-xs sm:text-sm font-bold text-[#C82564] transition hover:border-[#E13D7D] hover:bg-[#FFF5F8] disabled:opacity-60 cursor-pointer"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-[#E13D7D]/55 bg-white px-4 py-3 text-xs sm:text-sm font-bold text-[#C82564] transition hover:border-[#E13D7D] hover:bg-[#FFF5F8] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
           >
-            <LuUpload className="h-4 w-4 shrink-0" />
+            {uploading ? (
+              <LuLoader2 className="h-4 w-4 shrink-0 animate-spin" />
+            ) : (
+              <LuUpload className="h-4 w-4 shrink-0" />
+            )}
             <span>
               {uploading
                 ? "Đang tải ảnh lên Supabase Storage..."

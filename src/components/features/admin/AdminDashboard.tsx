@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   LuBadgeCheck,
@@ -8,6 +8,7 @@ import {
   LuExternalLink,
   LuImages,
   LuLayoutDashboard,
+  LuLoader2,
   LuLogOut,
   LuMapPin,
   LuPencil,
@@ -62,6 +63,7 @@ export function AdminDashboard({
   >(null);
   const [deleting, setDeleting] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [isRefreshing, startRefresh] = useTransition();
   const [feedback, setFeedback] = useState<{
     type: "success" | "error";
     text: string;
@@ -143,7 +145,9 @@ export function AdminDashboard({
       }
 
       setDeleteTarget(null);
-      router.refresh();
+      startRefresh(() => {
+        router.refresh();
+      });
     } catch {
       setFeedback({
         type: "error",
@@ -174,6 +178,14 @@ export function AdminDashboard({
                 >
                   {adminEmail}
                 </Badge>
+                {isRefreshing && (
+                  <Badge
+                    tone="pink"
+                    icon={<LuLoader2 className="h-3.5 w-3.5 animate-spin" />}
+                  >
+                    Đang đồng bộ dữ liệu...
+                  </Badge>
+                )}
               </div>
               <h1 className="mt-3 text-2xl sm:text-3xl font-extrabold text-[#103F2B]">
                 Quản lý Tour Du lịch &amp; Hình ảnh
@@ -197,10 +209,10 @@ export function AdminDashboard({
                 variant="soft-pink"
                 size="sm"
                 onClick={handleLogout}
-                disabled={loggingOut}
+                loading={loggingOut}
                 leftIcon={<LuLogOut className="h-4 w-4" />}
               >
-                {loggingOut ? "Đang thoát..." : "Đăng xuất"}
+                {loggingOut ? "Đang đăng xuất..." : "Đăng xuất"}
               </Button>
             </div>
           </div>
@@ -569,7 +581,9 @@ export function AdminDashboard({
             });
           }
           setTourModalOpen(false);
-          router.refresh();
+          startRefresh(() => {
+            router.refresh();
+          });
         }}
       />
 
@@ -597,7 +611,9 @@ export function AdminDashboard({
             });
           }
           setGalleryModalOpen(false);
-          router.refresh();
+          startRefresh(() => {
+            router.refresh();
+          });
         }}
       />
 
@@ -605,6 +621,7 @@ export function AdminDashboard({
       <Modal
         isOpen={deleteTarget !== null}
         onClose={() => !deleting && setDeleteTarget(null)}
+        preventClose={deleting}
         title="Xác nhận xóa dữ liệu"
         maxWidthClass="max-w-md"
       >
@@ -615,6 +632,20 @@ export function AdminDashboard({
               <strong>“{deleteTarget.label}”</strong>? Thao tác này sẽ cập nhật
               lại trang chủ ngay lập tức.
             </p>
+            {deleting && (
+              <div
+                role="status"
+                aria-live="polite"
+                className="flex items-center gap-2.5 rounded-2xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs font-semibold text-rose-700"
+              >
+                <LuLoader2 className="h-4 w-4 shrink-0 animate-spin" />
+                <span>
+                  {deleteTarget.kind === "tour"
+                    ? "Đang xóa chương trình tour và dọn ảnh đính kèm..."
+                    : "Đang xóa ảnh khỏi album..."}
+                </span>
+              </div>
+            )}
             <div className="flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end">
               <Button
                 variant="outline"
@@ -627,9 +658,17 @@ export function AdminDashboard({
                 type="button"
                 onClick={handleConfirmDelete}
                 disabled={deleting}
-                className="inline-flex min-h-[42px] items-center justify-center rounded-2xl bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:opacity-60 cursor-pointer"
+                aria-busy={deleting || undefined}
+                className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-2xl bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
               >
-                {deleting ? "Đang xóa..." : "Xác nhận xóa"}
+                {deleting && <LuLoader2 className="h-4 w-4 animate-spin" />}
+                <span>
+                  {deleting
+                    ? deleteTarget.kind === "tour"
+                      ? "Đang xóa tour..."
+                      : "Đang xóa ảnh..."
+                    : "Xác nhận xóa"}
+                </span>
               </button>
             </div>
           </div>

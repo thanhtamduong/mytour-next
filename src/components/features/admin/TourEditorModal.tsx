@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { LuPlus, LuTrash2 } from "@/components/common/Icons";
+import { LuLoader2, LuPlus, LuTrash2 } from "@/components/common/Icons";
 import { Button } from "@/components/common/Button";
 import { Modal } from "@/components/common/Modal";
 import { ImageUploadField } from "@/components/features/admin/ImageUploadField";
@@ -99,10 +99,14 @@ function ListFieldEditor({
 
 function TourEditorForm({
   editingTour,
+  submitting,
+  onSubmittingChange,
   onClose,
   onSaved,
 }: {
   editingTour: TourPackage | null;
+  submitting: boolean;
+  onSubmittingChange: (nextSubmitting: boolean) => void;
   onClose: () => void;
   onSaved: (tour: TourPackage, mode: "create" | "update") => void;
 }) {
@@ -162,7 +166,6 @@ function TourEditorForm({
       : ["Vé máy bay / xe du lịch đời mới", "Khách sạn chuẩn 4 sao & ăn sáng buffet"]
   );
 
-  const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleTitleChange = (nextTitle: string) => {
@@ -185,7 +188,7 @@ function TourEditorForm({
     if (submitting) return;
 
     setErrorMessage(null);
-    setSubmitting(true);
+    onSubmittingChange(true);
 
     const payload: TourFormInput = {
       slug: slug.trim() || slugifyVietnamese(title),
@@ -237,19 +240,24 @@ function TourEditorForm({
     } catch {
       setErrorMessage("Mất kết nối tới máy chủ khi lưu tour.");
     } finally {
-      setSubmitting(false);
+      onSubmittingChange(false);
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      <ImageUploadField
-        label="Ảnh bìa chương trình tour"
-        folder="tours"
-        value={imageUrl}
-        onChange={setImageUrl}
-        previewAlt={title || "Ảnh tour mới"}
-      />
+      <div
+        className={`space-y-5 transition-opacity ${
+          submitting ? "pointer-events-none opacity-65" : ""
+        }`}
+      >
+        <ImageUploadField
+          label="Ảnh bìa chương trình tour"
+          folder="tours"
+          value={imageUrl}
+          onChange={setImageUrl}
+          previewAlt={title || "Ảnh tour mới"}
+        />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
@@ -561,6 +569,22 @@ function TourEditorForm({
         addLabel="Thêm dịch vụ"
         onChange={setIncludes}
       />
+      </div>
+
+      {submitting && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-center gap-2.5 rounded-2xl border border-[#B2DFC4] bg-[#EEF9F2] px-4 py-3 text-xs font-semibold text-[#145335]"
+        >
+          <LuLoader2 className="h-4 w-4 shrink-0 animate-spin text-[#186C42]" />
+          <span>
+            {isEditing
+              ? "Đang lưu cập nhật chương trình tour vào Supabase..."
+              : "Đang đăng chương trình tour mới lên Supabase..."}
+          </span>
+        </div>
+      )}
 
       {errorMessage && (
         <div
@@ -572,17 +596,24 @@ function TourEditorForm({
       )}
 
       <div className="flex flex-col-reverse gap-2.5 border-t border-[#FCE7F0] pt-4 sm:flex-row sm:justify-end">
-        <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
+        <Button
+          variant="outline"
+          onClick={onClose}
+          disabled={submitting}
+          className="w-full sm:w-auto"
+        >
           Hủy bỏ
         </Button>
         <Button
           type="submit"
           variant="primary"
-          disabled={submitting}
+          loading={submitting}
           className="w-full sm:w-auto"
         >
           {submitting
-            ? "Đang lưu dữ liệu..."
+            ? isEditing
+              ? "Đang cập nhật tour..."
+              : "Đang thêm tour mới..."
             : isEditing
               ? "Lưu cập nhật tour"
               : "Đăng chương trình tour mới"}
@@ -598,10 +629,18 @@ export function TourEditorModal({
   onClose,
   onSaved,
 }: TourEditorModalProps) {
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleClose = () => {
+    if (submitting) return;
+    onClose();
+  };
+
   return (
     <Modal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
+      preventClose={submitting}
       title={
         editingTour
           ? `Chỉnh sửa tour: ${editingTour.code}`
@@ -613,7 +652,9 @@ export function TourEditorModal({
         <TourEditorForm
           key={editingTour?.id ?? "new-tour"}
           editingTour={editingTour}
-          onClose={onClose}
+          submitting={submitting}
+          onSubmittingChange={setSubmitting}
+          onClose={handleClose}
           onSaved={onSaved}
         />
       )}

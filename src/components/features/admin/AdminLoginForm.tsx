@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   LuArrowLeft,
   LuEye,
   LuEyeOff,
+  LuLoader2,
   LuLock,
 } from "@/components/common/Icons";
 import { Button } from "@/components/common/Button";
@@ -23,11 +24,14 @@ export function AdminLoginForm({ isConfigured }: AdminLoginFormProps) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const isLoading = submitting || isPending;
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (submitting) return;
+    if (isLoading) return;
 
     setErrorMessage(null);
     setSubmitting(true);
@@ -50,13 +54,16 @@ export function AdminLoginForm({ isConfigured }: AdminLoginFormProps) {
         setErrorMessage(
           data.error || "Đăng nhập không thành công. Vui lòng thử lại.",
         );
+        setSubmitting(false);
         return;
       }
 
-      router.refresh();
+      startTransition(() => {
+        router.refresh();
+        setSubmitting(false);
+      });
     } catch {
       setErrorMessage("Không thể kết nối tới máy chủ. Vui lòng thử lại.");
-    } finally {
       setSubmitting(false);
     }
   };
@@ -78,10 +85,10 @@ export function AdminLoginForm({ isConfigured }: AdminLoginFormProps) {
             <h1 className="mt-3 text-2xl font-extrabold text-[#103F2B]">
               Đăng nhập Quản lý Tour
             </h1>
-            <p className="mt-1.5 text-sm leading-relaxed text-[#103F2B]/75">
+            {/* <p className="mt-1.5 text-sm leading-relaxed text-[#103F2B]/75">
               Đăng nhập bằng tài khoản Supabase Admin để tải ảnh lên Storage,
               thêm chương trình tour mới và cập nhật trang chủ.
-            </p>
+            </p> */}
           </div>
 
           {!isConfigured && (
@@ -118,11 +125,12 @@ export function AdminLoginForm({ isConfigured }: AdminLoginFormProps) {
                 type="email"
                 autoComplete="email"
                 required
+                disabled={isLoading}
                 maxLength={120}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@gmail.com"
-                className="w-full rounded-2xl border border-[#FBCFE2] bg-[#FFF5F8]/40 px-4 py-2.5 text-base sm:text-sm font-medium text-[#103F2B] focus:border-[#E13D7D] focus:bg-white focus:outline-none"
+                className="w-full rounded-2xl border border-[#FBCFE2] bg-[#FFF5F8]/40 px-4 py-2.5 text-base sm:text-sm font-medium text-[#103F2B] focus:border-[#E13D7D] focus:bg-white focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -140,26 +148,49 @@ export function AdminLoginForm({ isConfigured }: AdminLoginFormProps) {
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   required
+                  disabled={isLoading}
                   maxLength={200}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Nhập mật khẩu ..."
-                  className="w-full rounded-2xl border border-[#FBCFE2] bg-[#FFF5F8]/40 py-2.5 pl-4 pr-11 text-base sm:text-sm font-medium text-[#103F2B] focus:border-[#E13D7D] focus:bg-white focus:outline-none"
+                  className="w-full rounded-2xl border border-[#FBCFE2] bg-[#FFF5F8]/40 py-2.5 pl-4 pr-12 text-base sm:text-sm font-medium text-[#103F2B] focus:border-[#E13D7D] focus:bg-white focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
                 />
                 <button
                   type="button"
+                  disabled={isLoading}
+                  onMouseDown={(event) => event.preventDefault()}
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-xl p-1.5 text-[#103F2B]/60 hover:bg-[#FCE7F0] hover:text-[#C82564] cursor-pointer"
+                  className={`absolute right-2 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
+                    showPassword
+                      ? "bg-[#FCE7F0]/85 text-[#C82564]"
+                      : "text-[#103F2B]/60 hover:bg-[#FCE7F0] hover:text-[#C82564]"
+                  }`}
                   aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                  aria-pressed={showPassword}
+                  aria-controls="admin-password"
+                  title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                 >
                   {showPassword ? (
-                    <LuEyeOff className="h-4 w-4" />
+                    <LuEyeOff className="pointer-events-none h-4 w-4" />
                   ) : (
-                    <LuEye className="h-4 w-4" />
+                    <LuEye className="pointer-events-none h-4 w-4" />
                   )}
                 </button>
               </div>
             </div>
+
+            {isLoading && (
+              <div
+                role="status"
+                aria-live="polite"
+                className="flex items-center gap-2.5 rounded-2xl border border-[#B2DFC4] bg-[#EEF9F2] px-3.5 py-2.5 text-xs font-semibold text-[#145335]"
+              >
+                <LuLoader2 className="h-4 w-4 shrink-0 animate-spin text-[#186C42]" />
+                <span>
+                  Đang xác thực tài khoản và tải bảng điều khiển quản trị...
+                </span>
+              </div>
+            )}
 
             {errorMessage && (
               <div
@@ -175,10 +206,11 @@ export function AdminLoginForm({ isConfigured }: AdminLoginFormProps) {
               variant="primary"
               size="lg"
               fullWidth
-              disabled={submitting || !isConfigured}
+              loading={isLoading}
+              disabled={!isConfigured}
               leftIcon={<LuLock className="h-4 w-4" />}
             >
-              {submitting ? "Đang xác thực..." : "Đăng nhập vào trang quản lý"}
+              {isLoading ? "Đang đăng nhập..." : "Đăng nhập vào trang quản lý"}
             </Button>
           </form>
 

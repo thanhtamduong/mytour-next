@@ -422,3 +422,69 @@ export function LuLayoutDashboard(props: IconProps) {
     </IconFrame>
   );
 }
+
+export function LuLoader2(props: IconProps) {
+  return (
+    <IconFrame {...props}>
+      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+    </IconFrame>
+  );
+}
+
+export function LuChevronUp(props: IconProps) {
+  return (
+    <IconFrame {...props}>
+      <path d="m18 15-6-6-6 6" />
+    </IconFrame>
+  );
+}
+
+export function LuFlower2(props: IconProps) {
+  return (
+    <IconFrame {...props}>
+      <path d="M12 5a3 3 0 1 1 3 3m-3-3a3 3 0 1 0-3 3m3-3v1M9 8a3 3 0 1 0 3 3M9 8h1m5 0a3 3 0 1 1-3 3m3-3h-1m-2 3v-1" />
+      <circle cx="12" cy="8" r="2" />
+      <path d="M12 10v12" />
+      <path d="M12 22c4.2 0 7-1.667 7-5-4.2 0-7 1.667-7 5Z" />
+      <path d="M12 22c-4.2 0-7-1.667-7-5 4.2 0 7 1.667 7 5Z" />
+    </IconFrame>
+  );
+}
+
+export function LuSun(props: IconProps) {
+  return (
+    <IconFrame {...props}>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2" />
+      <path d="M12 20v2" />
+      <path d="m4.93 4.93 1.41 1.41" />
+      <path d="m17.66 17.66 1.41 1.41" />
+      <path d="M2 12h2" />
+      <path d="M20 12h2" />
+      <path d="m6.34 17.66-1.41 1.41" />
+      <path d="m19.07 4.93-1.41 1.41" />
+    </IconFrame>
+  );
+}
+
+export function LuLeaf(props: IconProps) {
+  return (
+    <IconFrame {...props}>
+      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+      <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+    </IconFrame>
+  );
+}
+
+export function LuSnowflake(props: IconProps) {
+  return (
+    <IconFrame {...props}>
+      <line x1="2" x2="22" y1="12" y2="12" />
+      <line x1="12" x2="12" y1="2" y2="22" />
+      <path d="m20 16-4-4 4-4" />
+      <path d="m4 8 4 4-4 4" />
+      <path d="m16 4-4 4-4-4" />
+      <path d="m8 20 4-4 4 4" />
+    </IconFrame>
+  );
+}

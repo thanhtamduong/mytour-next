@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { LuLoader2 } from "@/components/common/Icons";
 import { Button } from "@/components/common/Button";
 import { Modal } from "@/components/common/Modal";
 import { ImageUploadField } from "@/components/features/admin/ImageUploadField";
@@ -28,10 +29,14 @@ function resolvePhotoString(
 
 function GalleryEditorForm({
   editingPhoto,
+  submitting,
+  onSubmittingChange,
   onClose,
   onSaved,
 }: {
   editingPhoto: PersonalPhotoItem | null;
+  submitting: boolean;
+  onSubmittingChange: (nextSubmitting: boolean) => void;
   onClose: () => void;
   onSaved: (photo: PersonalPhotoItem, mode: "create" | "update") => void;
 }) {
@@ -52,7 +57,6 @@ function GalleryEditorForm({
   const [imageUrl, setImageUrl] = useState(
     resolvePhotoString(editingPhoto?.imageUrl)
   );
-  const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -60,7 +64,7 @@ function GalleryEditorForm({
     if (submitting) return;
 
     setErrorMessage(null);
-    setSubmitting(true);
+    onSubmittingChange(true);
 
     const payload: GalleryFormInput = {
       title: title.trim(),
@@ -99,19 +103,24 @@ function GalleryEditorForm({
     } catch {
       setErrorMessage("Mất kết nối tới máy chủ khi lưu ảnh.");
     } finally {
-      setSubmitting(false);
+      onSubmittingChange(false);
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <ImageUploadField
-        label="Hình ảnh album cá nhân / dẫn đoàn"
-        folder="gallery"
-        value={imageUrl}
-        onChange={setImageUrl}
-        previewAlt={title || "Ảnh album mới"}
-      />
+      <div
+        className={`space-y-4 transition-opacity ${
+          submitting ? "pointer-events-none opacity-65" : ""
+        }`}
+      >
+        <ImageUploadField
+          label="Hình ảnh album cá nhân / dẫn đoàn"
+          folder="gallery"
+          value={imageUrl}
+          onChange={setImageUrl}
+          previewAlt={title || "Ảnh album mới"}
+        />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
@@ -231,6 +240,22 @@ function GalleryEditorForm({
           />
         </div>
       </div>
+      </div>
+
+      {submitting && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-center gap-2.5 rounded-2xl border border-[#B2DFC4] bg-[#EEF9F2] px-4 py-3 text-xs font-semibold text-[#145335]"
+        >
+          <LuLoader2 className="h-4 w-4 shrink-0 animate-spin text-[#186C42]" />
+          <span>
+            {isEditing
+              ? "Đang lưu thay đổi ảnh album..."
+              : "Đang thêm ảnh mới vào album..."}
+          </span>
+        </div>
+      )}
 
       {errorMessage && (
         <div
@@ -242,17 +267,24 @@ function GalleryEditorForm({
       )}
 
       <div className="flex flex-col-reverse gap-2.5 border-t border-[#FCE7F0] pt-4 sm:flex-row sm:justify-end">
-        <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
+        <Button
+          variant="outline"
+          onClick={onClose}
+          disabled={submitting}
+          className="w-full sm:w-auto"
+        >
           Hủy bỏ
         </Button>
         <Button
           type="submit"
           variant="primary"
-          disabled={submitting}
+          loading={submitting}
           className="w-full sm:w-auto"
         >
           {submitting
-            ? "Đang lưu ảnh..."
+            ? isEditing
+              ? "Đang cập nhật ảnh..."
+              : "Đang thêm ảnh..."
             : isEditing
               ? "Lưu thay đổi"
               : "Thêm vào Album ảnh"}
@@ -268,10 +300,18 @@ export function GalleryEditorModal({
   onClose,
   onSaved,
 }: GalleryEditorModalProps) {
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleClose = () => {
+    if (submitting) return;
+    onClose();
+  };
+
   return (
     <Modal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
+      preventClose={submitting}
       title={editingPhoto ? "Chỉnh sửa ảnh album" : "Tải ảnh mới lên Album"}
       maxWidthClass="max-w-2xl"
     >
@@ -279,7 +319,9 @@ export function GalleryEditorModal({
         <GalleryEditorForm
           key={editingPhoto?.id ?? "new-photo"}
           editingPhoto={editingPhoto}
-          onClose={onClose}
+          submitting={submitting}
+          onSubmittingChange={setSubmitting}
+          onClose={handleClose}
           onSaved={onSaved}
         />
       )}
