@@ -1,6 +1,6 @@
 import { normalizeSiteUrl } from "@/lib/sanitize";
 
-const DEFAULT_SITE_URL = "https://thuylinhtravel.vn";
+const DEFAULT_SITE_URL = "https://thuylinhtravel.vercel.app";
 
 export const SITE_URL = normalizeSiteUrl(
   process.env.NEXT_PUBLIC_SITE_URL,

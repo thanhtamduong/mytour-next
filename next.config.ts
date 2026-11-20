@@ -3,7 +3,9 @@ import type { NextConfig } from "next";
 const isDev = process.env.NODE_ENV === "development";
 
 function parseSupabaseHostInfo(): { origin: string; hostname: string } | null {
-  const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const rawUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ||
+    process.env.SUPABASE_URL?.trim();
   if (!rawUrl) return null;
 
   try {

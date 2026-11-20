@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     return adminJson(
       {
         error:
-          "Chưa cấu hình NEXT_PUBLIC_SUPABASE_URL và khóa Supabase trong .env.local.",
+          "Chưa cấu hình NEXT_PUBLIC_SUPABASE_URL và khóa Supabase trong Environment Variables (Vercel) hoặc .env.local.",
       },
       { status: 503 }
     );

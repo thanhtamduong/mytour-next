@@ -48,7 +48,7 @@ export function AdminLoginForm({ isConfigured }: AdminLoginFormProps) {
 
       if (!response.ok) {
         setErrorMessage(
-          data.error || "Đăng nhập không thành công. Vui lòng thử lại."
+          data.error || "Đăng nhập không thành công. Vui lòng thử lại.",
         );
         return;
       }
@@ -72,7 +72,7 @@ export function AdminLoginForm({ isConfigured }: AdminLoginFormProps) {
 
             <div className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-[#FBCFE2] bg-[#FFF5F8] px-3 py-1 text-xs font-bold text-[#C82564]">
               <LuLock className="h-3.5 w-3.5" />
-              <span>Supabase Auth • Quản trị</span>
+              <span>Quản trị</span>
             </div>
 
             <h1 className="mt-3 text-2xl font-extrabold text-[#103F2B]">
@@ -94,7 +94,13 @@ export function AdminLoginForm({ isConfigured }: AdminLoginFormProps) {
               <code className="font-bold">
                 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
               </code>{" "}
-              trong <code className="font-bold">.env.local</code>.
+              (hoặc{" "}
+              <code className="font-bold">NEXT_PUBLIC_SUPABASE_ANON_KEY</code>).
+              Nếu chạy trên máy hãy kiểm tra{" "}
+              <code className="font-bold">.env.local</code>; nếu deploy trên
+              Vercel hãy thêm trong{" "}
+              <strong>Project Settings → Environment Variables</strong> rồi bấm{" "}
+              <strong>Redeploy</strong>.
             </div>
           )}
 
@@ -137,7 +143,7 @@ export function AdminLoginForm({ isConfigured }: AdminLoginFormProps) {
                   maxLength={200}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Nhập mật khẩu Supabase Auth..."
+                  placeholder="Nhập mật khẩu ..."
                   className="w-full rounded-2xl border border-[#FBCFE2] bg-[#FFF5F8]/40 py-2.5 pl-4 pr-11 text-base sm:text-sm font-medium text-[#103F2B] focus:border-[#E13D7D] focus:bg-white focus:outline-none"
                 />
                 <button
